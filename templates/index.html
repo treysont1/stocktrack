@@ -1,17 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{url_for("static", filename="styles.css")}}">
-    <title>StockTrack</title>
-</head>
-<body>
-    <h1>Welcome to my Cross Platform Stock Tracking App</h1>
-    <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. 
-        Nobis nulla repellat recusandae quod, impedit, esse ipsam ullam, 
-        a rerum autem atque praesentium ratione vel possimus laboriosam 
-        expedita maiores quidem laborum.
-    </p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block head %} 
+<title>StockTrack</title>
+{% endblock %}
+{% block body %}
+<h1>hello kiddies</h1>
+<h1>Welcome to my Cross Platform Stock Tracking App</h1>
+<div class="content">
+    <h1>Stock Table</h1>
+    <table>
+        <tr>
+            <th>Stocks</th>
+            <th>Initial Value</th>
+            <th>Current Value</th>
+        </tr>
+        <tr>
+            <td>AAPL</td>
+            <td>120</td>
+            <td>320</td>
+        </tr>
+    </table>
+    <form action="">
+        <input type="text" name="Stock" id="stock" />
+        <input type="submit" value="Add Stock" id="button_add"
+    </form>
+</div>
+{% endblock %}
