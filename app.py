@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, request
 from flask_scss import Scss
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +8,10 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 Scss(app)
 
+
+load_dotenv(dotenv_path="env/.env")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('SQLALCHEMY_DATABASE_URI')
 db = SQLAlchemy(app)
 
 #Data - Row of Data
