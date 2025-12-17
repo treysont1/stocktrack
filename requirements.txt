@@ -1,5 +1,6 @@
 blinker==1.9.0
 click==8.3.1
+dotenv==0.9.9
 Flask==3.1.2
 Flask-Scss==0.5
 Flask-SQLAlchemy==3.1.1
@@ -7,6 +8,7 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 pyScss==1.4.0
+python-dotenv==1.2.1
 six==1.17.0
 SQLAlchemy==2.0.45
 typing_extensions==4.15.0
