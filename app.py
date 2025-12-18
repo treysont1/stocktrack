@@ -63,7 +63,12 @@ def delete(id):
 def update(id):
     stock_update = Stock.query.get_or_404(id)
     if request.method == "POST":
-        stock_update.ticker = request.form['stock']
+        stock_update.ticker = request.form['stock_ticker']
+        stock_update.initial = request.form['stock_initial']
+        stock_update.current = request.form['stock_current']
+        # print("HERE IS DATETIME")
+        # print(type(request.form['date_added']))
+        # stock_update.date_added = datetime(request.form['date_added'])
         try:
             db.session.commit()
             return redirect("/")
