@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, request
 from flask_scss import Scss
 from flask_sqlalchemy import SQLAlchemy
-#from datetime import datetime
+from datetime import datetime
 
 app = Flask(__name__)
 Scss(app)
@@ -17,10 +17,10 @@ db = SQLAlchemy(app)
 #Data - Row of Data
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(10), nullable=False)
-    initial = db.Column(db.Integer)
-    current = db.Column(db.Integer)
-#datetime default=datetime.
+    ticker = db.Column(db.String(25), nullable=False)
+    initial = db.Column(db.Integer, default=0)
+    current = db.Column(db.Integer, default=0)
+    date_added = db.Column(db.DateTime, default=datetime.now)
     def __repr__(self):
         return f"Stock {self.id}"
 
@@ -28,12 +28,51 @@ class Stock(db.Model):
 #Homepage
 @app.route("/", methods=["POST", "GET"])
 def index():
-    #Add stock
+    #Add Stock
+    if request.method == "POST":
+        stock = request.form['stock']
+        new_stock = Stock(ticker=stock)
+        try: 
+            db.session.add(new_stock)
+            db.session.commit()
+            return redirect("/")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error:{e}")
+            return f"Error:{e}"
+    # See portfolio
+    else:
+        portfolio = Stock.query.order_by(Stock.date_added).all()
+        return render_template("index.html", portfolio=portfolio)
 
+#Remove Stock
+@app.route("/delete/<int:id>", methods=["POST", "GET"])
+def delete(id):
+    stock_delete = Stock.query.get_or_404(id)
+    try:
+        db.session.delete(stock_delete)
+        db.session.commit()
+        return redirect('/')
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error:{e}")
+        return f"Error:{e}"
+    
+#Edit Stock    
+@app.route("update/<int:id>", methods=["POST", "GET"])
+def edit(id):
+    stock_edit = Stock.query.get_or_404(id)
+    if request.method == "POST":
+        stock_edit.ticker = request.form['stock']
+        try:
+            db.session.commit()
+            return redirect("/")
+        except Exception as e:
+            print(f"Error:{e}")
+            return f"Error:{e}"
+    else:
+        return "yonk"
 
-    #See portfolio
-
-    return render_template("index.html")
 
 
 if __name__ in "__main__":
