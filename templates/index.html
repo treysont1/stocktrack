@@ -7,22 +7,36 @@
 <h1>hello kiddies</h1>
 <h1>Welcome to my Cross Platform Stock Tracking App</h1>
 <div class="content">
-    <h1>Stock Table</h1>
-    <table>
-        <tr>
-            <th>Stocks</th>
-            <th>Initial Value</th>
-            <th>Current Value</th>
-        </tr>
-        <tr>
-            <td>AAPL</td>
-            <td>120</td>
-            <td>320</td>
-        </tr>
-    </table>
-    <form action="">
-        <input type="text" name="Stock" id="stock" />
-        <input type="submit" value="Add Stock" id="button_add"
+    <h1>StockTrack</h1>
+    {% if portfolio | length < 1 %}
+    <h3>Add Stocks</h3>
+    {% else %}
+        <table>
+            <tr>
+                <th>Stocks</th>
+                <th>Initial Value</th>
+                <th>Current Value</th>
+                <th>Date Added</th>
+                <th>Actions</th>
+            </tr>
+            {% for stock in portfolio %}
+                <tr>
+                    <td>{{stock.ticker}}</td>
+                    <td>{{stock.initial}}</td>
+                    <td>{{stock.current}}</td>
+                    <td>{{stock.date_added.strftime("%Y-%m-%d, %I:%M:%S")}}</td>
+                    <td>
+                        <a href="/delete/{{stock.id}}">Delete</a>
+                        <br/>
+                        <a href="/update/{{stock.id}}">Edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    <form action="/" method="POST">
+        <input type="text" name="stock" id="stock" />
+        <input type="submit" value="Add Stock" id="button_add" />
     </form>
 </div>
 {% endblock %}
