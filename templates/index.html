@@ -21,8 +21,8 @@
             {% for stock in portfolio %}
                 <tr>
                     <td>{{stock.ticker}}</td>
-                    <td>{{stock.initial}}</td>
-                    <td>{{stock.current}}</td>
+                    <td>${{stock.initial}}</td>
+                    <td>${{stock.current}}</td>
                     <td>{{stock.date_added.strftime("%Y-%m-%d, %I:%M:%S")}}</td>
                     <td>
                         <a href="/delete/{{stock.id}}">Delete</a>
