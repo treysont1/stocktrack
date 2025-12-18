@@ -1,4 +1,29 @@
+// Colors
+$back_blue: #3c6aea;
+
 body {
-    background-color: #3c6aea;
-    color: yellow
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    margin: 0;
+    padding: 0;
+    background-color: $back_blue;
+    color: goldenrod;
+}
+
+.content{
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    
+    // h1{
+    //     pass;
+    // }
+    
+    table{
+        width: 100%;
+
+    }
 }
