@@ -59,11 +59,11 @@ def delete(id):
         return f"Error:{e}"
     
 #Edit Stock    
-@app.route("update/<int:id>", methods=["POST", "GET"])
-def edit(id):
-    stock_edit = Stock.query.get_or_404(id)
+@app.route("/update/<int:id>", methods=["POST", "GET"])
+def update(id):
+    stock_update = Stock.query.get_or_404(id)
     if request.method == "POST":
-        stock_edit.ticker = request.form['stock']
+        stock_update.ticker = request.form['stock']
         try:
             db.session.commit()
             return redirect("/")
@@ -71,7 +71,7 @@ def edit(id):
             print(f"Error:{e}")
             return f"Error:{e}"
     else:
-        return "yonk"
+        return render_template('update.html', stock=stock_update)
 
 
 

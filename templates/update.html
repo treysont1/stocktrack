@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %} 
+<title>StockTrack</title>
+{% endblock %}
+{% block body %}
+    <div class="content">
+            <h1>Edit Stock</h1>
+            <!--Stock Name Edit-->
+            <form action="/update/{{stock.id}}" method="POST">
+            <input type="text" name="stock" id="stock" value="{{stock.ticker}}"/>
+            <input type="submit" value="Update Stock" id="button_edit" />
+            </form>
+            <!--Initial Value Edit-->
+           <!-- <form action="/edit/{{stock.id}}" method="POST">
+            <input type="text" name="stock" id="stock" value="{{stock.ticker}}"/>
+            <input type="submit" value="Edit Stock" id="button_edit" />
+            </form>-->
+            <!--Current Value Edit-->
+            <!--Date Added Edit-->
+        </div>
+{% endblock %}
