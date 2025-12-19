@@ -10,8 +10,9 @@
             <table>
                 <tr>
                     <th>Ticker</th>
-                    <th>Initial Value</th>
-                    <th>Current Value</th>
+                    <th>Total Invested</th>
+                    <th>Shares Owned</th>
+                    <th>Current Share Price</th>
                     <th>Submit</th>
                 </tr>
                 <tr>
@@ -20,19 +21,24 @@
                     <input type="text" name="stock_ticker" id="stock_name" value="{{stock.ticker}}"/>
                     </td>
 
-                    <!--Initial Value Edit-->
+                    <!--Total Invested Edit-->
                     <td>
-                    <input type="number" step="0.001" name="stock_initial" id="stock_initial" value="{{stock.initial}}"/>
+                    <input type="number" step="any" name="stock_total_invested" id="stock_total_invested" value="{{stock.total_invested}}"/>
+                    </td>
+
+                    <!--Shares Owned Edit-->
+                    <td>
+                    <input type="number" step="any" name="stock_shares" id="stock_shares" value="{{stock.shares_owned}}">
                     </td>
 
                     <!--Current Value Edit-->
                     <td>
-                    <input type="number" step="0.001" name="stock_current" id="stock_current" value="{{stock.current}}"/>
+                    <input type="number" step="any" name="stock_current_share_price" id="stock_current_share_price" value="{{stock.current_share_price}}"/>
                     </td>
                 
-                    <!--Date Added Edit-->
+                    <!--Date Bought Edit-->
         <!-- 
-                    <input type="text" name="date_added" id="date_added" value="{{stock.date_added}}"/> -->
+                    <input type="text" name="date_bought" id="date_bought" value="{{stock.date_bought}}"/> -->
                     <td>
                     <input type="submit" value="Update Stock" id="button_edit" />
                     </td>
