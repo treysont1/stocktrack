@@ -15,7 +15,7 @@
                 <th>Stocks</th>
                 <th>Initial Value</th>
                 <th>Current Value</th>
-                <th>Date Added</th>
+                <th>Date Bought</th>
                 <th>Actions</th>
             </tr>
             {% for stock in portfolio %}
@@ -23,11 +23,13 @@
                     <td>{{stock.ticker}}</td>
                     <td>${{stock.initial}}</td>
                     <td>${{stock.current}}</td>
-                    <td>{{stock.date_added.strftime("%Y-%m-%d, %I:%M:%S %p")}}</td>
+                    <td>{{stock.date_bought.strftime("%Y-%m-%d, %I:%M:%S %p")}}</td>
                     <td>
                         <a href="/delete/{{stock.id}}">Delete</a>
                         <br/>
                         <a href="/update/{{stock.id}}">Edit</a>
+                        <br/>
+                        <a href="/info/{{stock.id}}">Info</a>
                     </td>
                 </tr>
             {% endfor %}
