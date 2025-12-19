@@ -13,16 +13,16 @@
         <table>
             <tr>
                 <th>Stocks</th>
-                <th>Initial Value</th>
-                <th>Current Value</th>
+                <th>Total Invested</th>
+                <th>Total Gain</th>
                 <th>Date Bought</th>
                 <th>Actions</th>
             </tr>
             {% for stock in portfolio %}
                 <tr>
                     <td>{{stock.ticker}}</td>
-                    <td>${{stock.initial}}</td>
-                    <td>${{stock.current}}</td>
+                    <td>${{"%.2f"|format(stock.total_invested)}}</td>
+                    <td>${{"%.2f"|format(stock.gain)}}</td>
                     <td>{{stock.date_bought.strftime("%Y-%m-%d, %I:%M:%S %p")}}</td>
                     <td>
                         <a href="/delete/{{stock.id}}">Delete</a>
