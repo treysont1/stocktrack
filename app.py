@@ -52,7 +52,7 @@ def index():
 
 #Stock Info
 @app.route("/info/<int:id>", methods=["GET"])
-def view():
+def view(id):
     stock_view = Stock.query.get_or_404(id)
     return render_template('info.html', stock=stock_view)
 
@@ -79,6 +79,11 @@ def update(id):
         stock_update.total_invested = request.form['stock_total_invested']
         stock_update.shares_owned = request.form['stock_shares']
         stock_update.current_share_price = request.form['stock_current_share_price']
+        stock_update.avg_cost = float(stock_update.total_invested) / float(stock_update.shares_owned)
+        stock_update.total_value = float(stock_update.shares_owned) * float(stock_update.current_share_price)
+        stock_update.gain = (float(stock_update.current_share_price) - float(stock_update.avg_cost)) * float(stock_update.shares_owned)
+        stock_update.gain_percentage = 100 * float(stock_update.gain) / float(stock_update.total_invested)
+        print(stock_update.__dict__)
         # print("HERE IS DATETIME")
         # print(type(request.form['date_bought']))
         # stock_update.date_bought = datetime(request.form['date_bought'])
