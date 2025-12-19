@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block head %} 
+<title>StockTrack</title>
+{% endblock %}
+{% block body %}
+<div class="content">
+    <h1>{{stock.ticker}} Info</h1>
+    <table>
+        <tr>
+            <th>Ticker</th>
+            <th>Total Invested</th>
+            <th>Shares Owned</th>
+            <th>Average Cost</th>
+            <th>Current Share Price</th>
+            <th>Total Value</th>
+            <th>Gain</th>
+            <th>Gain Percentage</th>
+        </tr>
+        <tr>
+            <td>{{stock.ticker}}</td>
+            <td>${{"%.2f"|format(stock.total_invested)}}</td>
+            <td>{{"%.10f"|format(stock.shares_owned)}}</td>
+            <td>${{"%.2f"|format(stock.avg_cost)}}</td>
+            <td>${{"%.2f"|format(stock.current_share_price)}}</td>
+            <td>${{"%.2f"|format(stock.total_value)}}</td>
+            <td>${{"%.2f"|format(stock.gain)}}</td>
+            <td>{{"%.2f"|format(stock.gain_percentage)}}%</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}
