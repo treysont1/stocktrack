@@ -5,7 +5,7 @@
 {% endblock %}
 {% block body %}
 <div class="content">
-    <h1>{{stock.ticker}} Info</h1>
+    <h1>{{stock.ticker}}</h1>
     <table>
         <tr>
             <th>Ticker</th>
@@ -20,7 +20,7 @@
         <tr>
             <td>{{stock.ticker}}</td>
             <td>${{"%.2f"|format(stock.total_invested)}}</td>
-            <td>{{"%.10f"|format(stock.shares_owned)}}</td>
+            <td>{{"%.8g"|format(stock.shares_owned)}}</td>
             <td>${{"%.2f"|format(stock.avg_cost)}}</td>
             <td>${{"%.2f"|format(stock.current_share_price)}}</td>
             <td>${{"%.2f"|format(stock.total_value)}}</td>
@@ -28,5 +28,6 @@
             <td>{{"%.2f"|format(stock.gain_percentage)}}%</td>
         </tr>
     </table>
+    <a href="/">Back</a>
 </div>
 {% endblock %}
