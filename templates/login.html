@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+
+{% block head %} 
+<title>StockTrack</title>
+{% endblock %}
+{% block body %}
+    <div class="content">
+        <body>
+            <form action="/login">
+                <input type="text" name="username" id="username" placeholder="Username"> <br>
+                <input type="text" name="password" id="password" placeholder="Password"> <br>
+                <input type="button" value="Submit Password">
+            </form>
+        </body>
+    </div>
+{% endblock %}
