@@ -5,6 +5,7 @@ from flask_scss import Scss
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from forms import LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -66,6 +67,15 @@ def index():
     else:
         portfolio = Stock.query.order_by(Stock.date_bought).all()
         return render_template("index.html", portfolio=portfolio)
+    
+#Login Page
+@app.route('/login', methods=["POST", "GET"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
+        return redirect('/')
+    return render_template('login.html', form=form)
 
 #Stock Info
 @app.route("/info/<int:id>", methods=["GET"])
