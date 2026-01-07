@@ -21,17 +21,11 @@ app.secret_key = os.getenv("SECRET_KEY")
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 #Data - Row of Data
-class Stock(db.Model):
+
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(25), nullable=False) 
-    total_invested = db.Column(db.Integer, default=0) 
-    shares_owned = db.Column(db.Integer, default=0) 
-    avg_cost = db.Column(db.Integer, default=0) 
-    current_share_price = db.Column(db.Integer, default=0) 
-    total_value = db.Column(db.Integer, default=0) 
-    gain = db.Column(db.Integer, default=0) 
-    gain_percentage = db.Column(db.Integer, default=0) 
-    date_bought = db.Column(db.DateTime, default=datetime.now)
+    username = db.Column(db.String(64), unique=True)
+    email = db.Column(db.String(128), unique=True)
     password_hash = db.Column(db.String(128))
 
     @property
@@ -44,6 +38,18 @@ class Stock(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class Stock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(25), nullable=False) 
+    total_invested = db.Column(db.Integer, default=0) 
+    shares_owned = db.Column(db.Integer, default=0) 
+    avg_cost = db.Column(db.Integer, default=0) 
+    current_share_price = db.Column(db.Integer, default=0) 
+    total_value = db.Column(db.Integer, default=0) 
+    gain = db.Column(db.Integer, default=0) 
+    gain_percentage = db.Column(db.Integer, default=0) 
+    date_bought = db.Column(db.DateTime, default=datetime.now)
+    
     def __repr__(self):
         return f"Stock {self.id}"
 
