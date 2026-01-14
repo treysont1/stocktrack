@@ -68,11 +68,12 @@ def load_user(id):
 
 #Homepage
 @app.route("/", methods=["POST", "GET"])
+@login_required
 def index():    
     #Add Stock
     if request.method == "POST":
         stock = request.form['stock']
-        new_stock = Stock(ticker=stock)
+        new_stock = Stock(ticker=stock, user=current_user)
         try: 
             db.session.add(new_stock)
             db.session.commit()
@@ -83,7 +84,7 @@ def index():
             return f"Error:{e}"
     # See portfolio
     else:
-        portfolio = Stock.query.order_by(Stock.date_bought).all()
+        portfolio = Stock.query.filter(Stock.user == current_user).order_by(Stock.date_bought).all()
         return render_template("index.html", portfolio=portfolio)
     
 #Login Page
