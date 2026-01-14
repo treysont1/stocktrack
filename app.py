@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, request, session, flash
 from flask_scss import Scss
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy.orm as so
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from forms import LoginForm
@@ -27,6 +28,7 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(128), unique=True)
     password_hash = db.Column(db.String(128))
+    stocks: so.WriteOnlyMapped['Stock'] = db.relationship(back_populates='user')
 
     @property
     def password(self):
@@ -37,6 +39,9 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def __repr__(self):
+        return f"User {self.username}"
 
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,9 +54,11 @@ class Stock(db.Model):
     gain = db.Column(db.Integer, default=0) 
     gain_percentage = db.Column(db.Integer, default=0) 
     date_bought = db.Column(db.DateTime, default=datetime.now)
-    
+    user_id: so.Mapped[int] = db.Column(db.ForeignKey("user.id"), index=True)
+    user: so.Mapped[User] = db.relationship(back_populates='stocks')
+
     def __repr__(self):
-        return f"Stock {self.id}"
+        return f"Stock {self.id}: {self.ticker}"
 
 
 #Homepage

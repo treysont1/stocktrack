@@ -5,6 +5,10 @@ from flask import current_app
 
 from alembic import context
 
+import os
+
+from dotenv import load_dotenv
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -50,6 +54,12 @@ def get_metadata():
         return target_db.metadatas[None]
     return target_db.metadata
 
+load_dotenv(dotenv_path="env/.env")
+
+database_url = os.getenv('SQLALCHEMY_DATABASE_URI')
+
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
