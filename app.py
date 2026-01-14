@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, request, session, flash
 from flask_scss import Scss
 from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy.orm as so
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
 from forms import LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,7 +12,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 Scss(app)
-# login_manager = LoginManager()
+login = LoginManager(app)
+login.login_view = 'login'
 # login_manager.init_app(app)
 
 load_dotenv(dotenv_path="env/.env")
@@ -23,7 +24,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 #Data - Row of Data
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(128), unique=True)
@@ -59,6 +60,10 @@ class Stock(db.Model):
 
     def __repr__(self):
         return f"Stock {self.id}: {self.ticker}"
+    
+@login.user_loader
+def load_user(id):
+    return db.session.get(User, int(id))
 
 
 #Homepage
@@ -84,11 +89,23 @@ def index():
 #Login Page
 @app.route('/login', methods=["POST", "GET"])
 def login():
+    if current_user.is_authenticated:
+        return redirect('/')
     form = LoginForm()
     if form.validate_on_submit():
+        user = db.session.scalar(db.select(User).where(User.username == form.username.data))
+        if user is None or not user.verify_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect('/login')
+        login_user(user, remember=form.remember_me.data)
         flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
         return redirect('/')
     return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect('/')
 
 #Stock Info
 @app.route("/info/<int:id>", methods=["GET"])
@@ -112,6 +129,7 @@ def delete(id):
     
 #Edit Stock    
 @app.route("/update/<int:id>", methods=["POST", "GET"])
+@login_required
 def update(id):
     stock_update = Stock.query.get_or_404(id)
     if request.method == "POST":
