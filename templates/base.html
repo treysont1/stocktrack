@@ -9,11 +9,11 @@
 <body>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <ul>
+    <p>
         {% for message in messages %}
-        <li>{{ messages }}</li>
+        {{ messages }}
         {% endfor %}
-    </ul>
+    </p>
     {% endif %}
     {% endwith %}
     {% block body %}{% endblock %}
