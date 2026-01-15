@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy.orm as so
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
-from forms import LoginForm
+from forms import LoginForm, RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -29,7 +29,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(128), unique=True)
     password_hash = db.Column(db.String(128))
-    stocks: so.WriteOnlyMapped['Stock'] = db.relationship(back_populates='user')
+    stocks: so.WriteOnlyMapped['Stock'] = db.relationship(back_populates='user', cascade='all, delete-orphan')
 
     @property
     def password(self):
@@ -102,11 +102,35 @@ def login():
         flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
         return redirect('/')
     return render_template('login.html', form=form)
-
+#Logout Page
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect('/')
+#Registration Page
+@app.route('/register', methods=["POST", "GET"])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        username = db.session.scalar(db.select(User).where(User.username == form.username.data))
+        email = db.session.scalar(db.select(User).where(User.email == form.email.data))
+        if username is None and email is None and form.password.data == form.confirm_password.data:
+            new_user = User(username=form.username.data, email=form.email.data, password=form.password.data)
+            try:
+                db.session.add(new_user)
+                db.session.commit()
+                login_user(new_user)
+                return redirect("/")
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error:{e}")
+                return f"Error:{e}"
+        elif username:
+            flash('Username Taken')
+        elif email:
+            flash('Email Already In Use')
+    return render_template('registration.html', form=form)
+
 
 #Stock Info
 @app.route("/info/<int:id>", methods=["GET"])
