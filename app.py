@@ -58,6 +58,18 @@ class Stock(db.Model):
     user_id: so.Mapped[int] = db.Column(db.ForeignKey("user.id"), index=True)
     user: so.Mapped[User] = db.relationship(back_populates='stocks')
 
+    @so.validates('shares_owned', 'total_invested', "current_share_price")
+    def update_calculatons(self, key, value):
+        # setattr(self, key, value)
+        self.__dict__[key] = value
+
+        self.avg_cost = float(self.total_invested) / float(self.shares_owned) if self.shares_owned else 0
+        self.total_value = float(self.shares_owned) * float(self.current_share_price)
+        self.gain = (float(self.current_share_price) - float(self.avg_cost)) * float(self.shares_owned)
+        self.gain_percentage = 100 * float(self.gain) / float(self.total_invested) if self.total_invested else 0
+        return value
+
+
     def __repr__(self):
         return f"Stock {self.id}: {self.ticker}"
     
@@ -162,11 +174,6 @@ def update(id):
         stock_update.total_invested = request.form['stock_total_invested']
         stock_update.shares_owned = request.form['stock_shares']
         stock_update.current_share_price = request.form['stock_current_share_price']
-        stock_update.avg_cost = float(stock_update.total_invested) / float(stock_update.shares_owned)
-        stock_update.total_value = float(stock_update.shares_owned) * float(stock_update.current_share_price)
-        stock_update.gain = (float(stock_update.current_share_price) - float(stock_update.avg_cost)) * float(stock_update.shares_owned)
-        stock_update.gain_percentage = 100 * float(stock_update.gain) / float(stock_update.total_invested)
-        print(stock_update.__dict__)
         # print("HERE IS DATETIME")
         # print(type(request.form['date_bought']))
         # stock_update.date_bought = datetime(request.form['date_bought'])
