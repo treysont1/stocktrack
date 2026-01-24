@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy.orm as so
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
-from forms import LoginForm, RegistrationForm
+from forms import LoginForm, RegistrationForm, DeleteAccount
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -29,7 +29,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(128), unique=True)
     password_hash = db.Column(db.String(128))
-    stocks: so.WriteOnlyMapped['Stock'] = db.relationship(back_populates='user', cascade='all, delete-orphan')
+    stocks: so.Mapped['Stock'] = db.relationship("Stock", back_populates='user', cascade='all, delete-orphan')
 
     @property
     def password(self):
@@ -55,8 +55,8 @@ class Stock(db.Model):
     gain = db.Column(db.Integer, default=0) 
     gain_percentage = db.Column(db.Integer, default=0) 
     date_bought = db.Column(db.DateTime, default=datetime.now)
-    user_id: so.Mapped[int] = db.Column(db.ForeignKey("user.id"), index=True)
-    user: so.Mapped[User] = db.relationship(back_populates='stocks')
+    user_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), nullable=False, index=True)
+    user: so.Mapped[User] = db.relationship(User, back_populates='stocks')
 
     @so.validates('shares_owned', 'total_invested', "current_share_price")
     def update_calculatons(self, key, value):
@@ -114,11 +114,13 @@ def login():
         flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
         return redirect('/')
     return render_template('login.html', form=form)
+
 #Logout Page
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect('/')
+
 #Registration Page
 @app.route('/register', methods=["POST", "GET"])
 def register():
@@ -143,9 +145,33 @@ def register():
             flash('Email Already In Use')
     return render_template('registration.html', form=form)
 
+#Delete Account
+@app.route('/delete-account/<int:id>', methods=["POST", "GET"])
+@login_required
+def delete_account(id):
+    form = DeleteAccount()
+    # user = db.session.scalar(db.select(User).where(User.username == current_user.username))
+    user_delete = User.query.get_or_404(id)
+    if form.validate_on_submit():
+        if user_delete.verify_password(form.password.data) and form.confirm.data == True:
+            try:
+                db.session.delete(user_delete)
+                db.session.commit()
+                logout_user()
+                flash('Account successfully deleted.')
+                return redirect('/')
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error: {e}")
+                return f"Error {e}"
+        else: 
+            flash('Incorrect Password')
+    return render_template('delete_account.html', form=form)
+
 
 #Stock Info
 @app.route("/info/<int:id>", methods=["GET"])
+@login_required
 def view(id):
     stock_view = Stock.query.get_or_404(id)
     return render_template('info.html', stock=stock_view)
@@ -153,6 +179,7 @@ def view(id):
 
 #Remove Stock
 @app.route("/delete/<int:id>", methods=["POST", "GET"])
+@login_required
 def delete(id):
     stock_delete = Stock.query.get_or_404(id)
     try:

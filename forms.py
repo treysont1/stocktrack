@@ -24,3 +24,6 @@ class RegistrationForm(FlaskForm):
     #     email = db.session.scalar(db.select(User).where(User.email == email.data))
     #     if email:
     #         raise ValidationError('Email Already In Use')
+class DeleteAccount(FlaskForm):
+    password = PasswordField('Enter password')
+    confirm  = SubmitField('Confirm Account Deletion')
