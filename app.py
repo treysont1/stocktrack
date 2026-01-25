@@ -182,36 +182,44 @@ def view(id):
 @login_required
 def delete(id):
     stock_delete = Stock.query.get_or_404(id)
-    try:
-        db.session.delete(stock_delete)
-        db.session.commit()
+    if current_user.id == stock_delete.user_id:
+        try:
+            db.session.delete(stock_delete)
+            db.session.commit()
+            return redirect('/')
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error:{e}")
+            return f"Error:{e}"
+    else:
+        flash('Unable to delete stock.')
         return redirect('/')
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error:{e}")
-        return f"Error:{e}"
     
 #Edit Stock    
 @app.route("/update/<int:id>", methods=["POST", "GET"])
 @login_required
 def update(id):
     stock_update = Stock.query.get_or_404(id)
-    if request.method == "POST":
-        stock_update.ticker = request.form['stock_ticker']
-        stock_update.total_invested = request.form['stock_total_invested']
-        stock_update.shares_owned = request.form['stock_shares']
-        stock_update.current_share_price = request.form['stock_current_share_price']
-        # print("HERE IS DATETIME")
-        # print(type(request.form['date_bought']))
-        # stock_update.date_bought = datetime(request.form['date_bought'])
-        try:
-            db.session.commit()
-            return redirect("/")
-        except Exception as e:
-            print(f"Error:{e}")
-            return f"Error:{e}"
+    if current_user.id == stock_update.user_id:
+        if request.method == "POST":
+            stock_update.ticker = request.form['stock_ticker']
+            stock_update.total_invested = request.form['stock_total_invested']
+            stock_update.shares_owned = request.form['stock_shares']
+            stock_update.current_share_price = request.form['stock_current_share_price']
+            # print("HERE IS DATETIME")
+            # print(type(request.form['date_bought']))
+            # stock_update.date_bought = datetime(request.form['date_bought'])
+            try:
+                db.session.commit()
+                return redirect("/")
+            except Exception as e:
+                print(f"Error:{e}")
+                return f"Error:{e}"
+        else:
+            return render_template('update.html', stock=stock_update)
     else:
-        return render_template('update.html', stock=stock_update)
+        flash('Unable to edit stock.')
+        return redirect("/")
 
 
 
