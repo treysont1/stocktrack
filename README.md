@@ -6,8 +6,8 @@
 
 ### Current Status
 
-#### Application is currently in CRUD stage where users manage data manually
+#### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
 ### Currently working on
 
-#### Main dashboard view to display basic profit/loss, automatically fetching brokerage data and current prices, data visualization
+#### Main dashboard view to display basic profit/loss, data visualization, updating edit pages to reflect transactions rather than overall stock.
