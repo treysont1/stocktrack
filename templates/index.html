@@ -10,41 +10,56 @@
 <a href="/logout">Logout</a>
 {% endif %}
 <a href="/register">Register</a>
+<span style="text-align: center;">{{current_user.username}}</span>
 <a href="/delete-account/{{current_user.id}}" style="float: right;">Delete Account</a>
 <div class="content">
     <h1>hello kiddies</h1>
     <h1>StockTrack</h1>
-    {% if portfolio | length < 1 %}
-    <h3>Add Stocks</h3>
-    {% else %}
-        <table>
-            <tr>
-                <th>Stocks</th>
-                <th>Total Invested</th>
-                <th>Total Gain</th>
-                <th>Date Bought</th>
-                <th>Actions</th>
-            </tr>
-            {% for stock in portfolio %}
-                <tr>
-                    <td>{{stock.ticker}}</td>
-                    <td>${{"%.2f"|format(stock.total_invested)}}</td>
-                    <td>${{"%.2f"|format(stock.gain)}}</td>
-                    <td>{{stock.date_bought.strftime("%Y-%m-%d, %I:%M:%S %p")}}</td>
-                    <td>
-                        <a href="/delete/{{stock.id}}">Delete</a>
-                        <br/>
-                        <a href="/update/{{stock.id}}">Edit</a>
-                        <br/>
-                        <a href="/info/{{stock.id}}">Info</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+    <table>
+    {% if portfolio | length > 0 %}
+        <tr>
+            <th>Stock</th>
+            <th>Shares</th>
+            <th>Average Cost</th>
+            <th>Total Invested</th>
+            <th>Current Price</th>
+            <th>Unrealized Gain</th>
+            <th>Percentage Gain</th>
+            <th>Actions</th>
+        </tr>
     {% endif %}
-    <form action="/" method="POST">
-        <input type="text" name="stock" id="stock" />
-        <input type="submit" value="Add Stock" id="button_add" />
-    </form>
+    {% for stock in portfolio %}
+        <tr>
+            <td>{{stock.ticker}}</td>
+            <td>{{"%.8g"|format(stock.shares_owned)}}</td>
+            <td>{{"%.2f"|format(stock.average_cost)}}</td>
+            <td>${{"%.2f"|format(stock.total_invested)}}</td>
+            <td>${{"%.2f"|format(current_prices.get(stock.ticker))}}</td>
+            <td>${{"%.2f"|format(stock.unrealized_gain)}}</td>
+            <td>{{"%.2f"|format(stock.potential_gain_percent)}}%</td>
+
+            <td>
+                <a href="/delete/{{stock.id}}">Delete</a>
+                <br/>
+                <a href="/update/{{stock.id}}">Edit</a>
+                <br/>
+                <a href="/info/{{stock.id}}">Info</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+
+    <table>
+        <tr><th></th><h3>Add New Stock</h3></th><tr>
+        <form action="/" method="POST">
+            <tr>
+                <td> <label for="stock">Ticker:</label> <br> <input type="text" name="stock" id="stock" /> </td>
+                <td> <label for="shares">Shares:</label> <br> <input type="number" step="any" name="shares" id="shares" value="1"/> </td>
+                <td> <label for="price">Price:</label> <br> <input type="number" step="any" name="price" id="xxx" value="1"/> </td>
+                <td> <label for="date">Transaction Date:</label> <br> <input type="datetime-local" step="any" name="date" id="xxx"/> </td>
+                <td> <input type="submit" value="Add Transaction" id="button_add" /> </td>
+            </tr>
+        </form>
+    </table>
 </div>
 {% endblock %}
