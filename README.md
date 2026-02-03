@@ -10,4 +10,4 @@
 
 ### Currently working on
 
-#### Main dashboard view to display basic profit/loss, data visualization, updating edit pages to reflect transactions rather than overall stock.
+#### Main dashboard view to display basic profit/loss, data visualization, fixing edit pages to reflect transactions rather than overall stock.
