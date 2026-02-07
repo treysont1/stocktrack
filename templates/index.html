@@ -41,7 +41,7 @@
             <td>
                 <a href="/delete/{{stock.id}}">Delete</a>
                 <br/>
-                <a href="/update/{{stock.id}}">Edit</a>
+                <a href="/update/{{stock.id}}">Add Transaction</a>
                 <br/>
                 <a href="/info/{{stock.id}}">Info</a>
             </td>
@@ -53,10 +53,10 @@
         <tr><th></th><h3>Add New Stock</h3></th><tr>
         <form action="/" method="POST">
             <tr>
-                <td> <label for="stock">Ticker:</label> <br> <input type="text" name="stock" id="stock" /> </td>
-                <td> <label for="shares">Shares:</label> <br> <input type="number" step="any" name="shares" id="shares" value="1"/> </td>
-                <td> <label for="price">Price:</label> <br> <input type="number" step="any" name="price" id="xxx" value="1"/> </td>
-                <td> <label for="date">Transaction Date:</label> <br> <input type="datetime-local" step="any" name="date" id="xxx"/> </td>
+                <td> <label for="stock">Ticker:</label> <br> <input type="text" name="stock" id="stock" required/> </td>
+                <td> <label for="shares">Shares:</label> <br> <input type="number" step="any" name="shares" id="shares" placeholder="0.00" required/> </td>
+                <td> <label for="price">Price:</label> <br> <input type="number" step="any" name="price" id="price" placeholder="0.00" required/> </td>
+                <td> <label for="date">Transaction Date:</label> <br> <input type="datetime-local" name="date" id="date_bought" required/> </td>
                 <td> <input type="submit" value="Add Transaction" id="button_add" /> </td>
             </tr>
         </form>
