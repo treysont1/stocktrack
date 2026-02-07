@@ -61,7 +61,7 @@ class Stock(db.Model):
     date_bought = db.Column(db.DateTime, default=datetime.now)
     user_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), nullable=False, index=True)
     user: so.Mapped[User] = db.relationship("User", back_populates='stocks')
-    transactions: so.Mapped[list['Transaction']] = db.relationship("Transaction", back_populates='stock', cascade='all, delete-orphan', order_by='Transaction.time_bought')
+    transactions: so.Mapped[list['Transaction']] = db.relationship("Transaction", back_populates='stock', cascade='all, delete-orphan', order_by='Transaction.time')
 
     @property
     def shares_owned(self):
@@ -124,7 +124,7 @@ class Transaction(db.Model):
     type = db.Column(db.Enum("BUY", "SELL", name="transaction_type"), nullable=False)
     shares = db.Column(db.Float, nullable=False)
     price_per_share = db.Column(db.Float, nullable=False)
-    time_bought = db.Column(db.DateTime, default=datetime.now)
+    time = db.Column(db.DateTime, default=datetime.now)
     stock_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("stock.id", ondelete='CASCADE'), nullable=False, index=True)
     stock: so.Mapped['Stock'] = db.relationship("Stock", back_populates='transactions')
     
@@ -146,19 +146,18 @@ def index():
         date = request.form['date']
         datetime_object = datetime.fromisoformat(date)
         # 2026-01-22T15:40
-        flash(shares)
-        flash(price)
-        flash(date)
         if validate_ticker(ticker):
             try: 
+                stock_present = False
                 for stock in portfolio:
                     if stock.ticker == ticker:
                         new_stock = stock
+                        stock_present = True
                         break
-                if not new_stock:
+                if not stock_present:
                     new_stock = Stock(ticker=ticker, user=current_user)
                 db.session.add(new_stock)
-                transaction = Transaction(type="BUY", shares=shares, price_per_share=price, time_bought=datetime_object, stock=new_stock)
+                transaction = Transaction(type="BUY", shares=shares, price_per_share=price, time=datetime_object, stock=new_stock)
                 db.session.add(transaction)
                 db.session.commit()
                 return redirect("/")
