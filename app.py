@@ -138,20 +138,25 @@ def load_user(id):
 @login_required
 def index():    
     #Add Stock
+    portfolio = Stock.query.filter(Stock.user == current_user).order_by(Stock.date_bought).all()
     if request.method == "POST":
-        stock = request.form['stock'].upper()
+        ticker = request.form['stock'].upper()
         shares = request.form['shares']
         price = request.form['price']
         date = request.form['date']
-        date_format = "%Y-%m-%dT%H:%M"
-        datetime_object = datetime.strptime(date, date_format)
+        datetime_object = datetime.fromisoformat(date)
         # 2026-01-22T15:40
         flash(shares)
         flash(price)
         flash(date)
-        if validate_ticker(stock):
+        if validate_ticker(ticker):
             try: 
-                new_stock = Stock(ticker=stock, user=current_user)
+                for stock in portfolio:
+                    if stock.ticker == ticker:
+                        new_stock = stock
+                        break
+                if not new_stock:
+                    new_stock = Stock(ticker=ticker, user=current_user)
                 db.session.add(new_stock)
                 transaction = Transaction(type="BUY", shares=shares, price_per_share=price, time_bought=datetime_object, stock=new_stock)
                 db.session.add(transaction)
@@ -166,7 +171,7 @@ def index():
             return redirect('/')
     # See portfolio
     else:
-        portfolio = Stock.query.filter(Stock.user == current_user).order_by(Stock.date_bought).all()
+        
         current_prices = {}
         for stock in portfolio:
             current_price = get_current_price(stock.ticker)
@@ -248,7 +253,8 @@ def delete_account(id):
 @login_required
 def view(id):
     stock_view = Stock.query.get_or_404(id)
-    return render_template('info.html', stock=stock_view)
+    current_price = get_current_price(stock_view.ticker)
+    return render_template('info.html', stock=stock_view, current_price=current_price, transactions=stock_view.transactions)
 
 
 #Remove Stock
@@ -274,23 +280,24 @@ def delete(id):
 @login_required
 def update(id):
     stock_update = Stock.query.get_or_404(id)
+    transaction = Transaction(stock=stock_update)
     if current_user.id == stock_update.user_id:
         if request.method == "POST":
-            stock_update.ticker = request.form['stock_ticker']
-            stock_update.total_invested = request.form['stock_total_invested']
-            stock_update.shares_owned = request.form['stock_shares']
-            stock_update.current_share_price = request.form['stock_current_share_price']
-            # print("HERE IS DATETIME")
-            # print(type(request.form['date_bought']))
-            # stock_update.date_bought = datetime(request.form['date_bought'])
+            transaction.type = request.form['transaction_type'].upper()
+            transaction.shares = request.form['shares']
+            transaction.price_per_share = request.form['price_per_share']
+            date = request.form['date_bought']
+            # 2026-02-03T23:56
+            transaction.date_bought = datetime.fromisoformat(date)
             try:
+                db.session.add(transaction)
                 db.session.commit()
                 return redirect("/")
             except Exception as e:
                 print(f"Error:{e}")
                 return f"Error:{e}"
         else:
-            return render_template('update.html', stock=stock_update)
+            return render_template('update.html', stock=stock_update, )
     else:
         flash('Unable to edit stock.')
         return redirect("/")
