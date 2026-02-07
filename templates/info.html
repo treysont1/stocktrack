@@ -14,19 +14,34 @@
             <th>Average Cost</th>
             <th>Current Share Price</th>
             <th>Total Value</th>
-            <th>Gain</th>
+            <th>Unrealized Gain</th>
             <th>Gain Percentage</th>
         </tr>
         <tr>
             <td>{{stock.ticker}}</td>
             <td>${{"%.2f"|format(stock.total_invested)}}</td>
             <td>{{"%.8g"|format(stock.shares_owned)}}</td>
-            <td>${{"%.2f"|format(stock.avg_cost)}}</td>
-            <td>${{"%.2f"|format(stock.current_share_price)}}</td>
-            <td>${{"%.2f"|format(stock.total_value)}}</td>
-            <td>${{"%.2f"|format(stock.gain)}}</td>
-            <td>{{"%.2f"|format(stock.gain_percentage)}}%</td>
+            <td>${{"%.2f"|format(stock.average_cost)}}</td>
+            <td>${{"%.2f"|format(current_price)}}</td>
+            <td>${{"%.2f"|format(stock.current_value)}}</td>
+            <td>${{"%.2f"|format(stock.unrealized_gain)}}</td>
+            <td>{{"%.2f"|format(stock.potential_gain_percent)}}%</td>
         </tr>
+    </table>
+    <h2>Transactions</h2>
+    <table>
+        <th>Type</th>
+        <th>Shares</th>
+        <th>Price</th>
+        <th>Date</th>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{transaction.type}}</td>
+            <td>{{"%.8g"|format(transaction.shares)}}</td>
+            <td>{{"%.2f"|format(transaction.price_per_share)}}</td>
+            <td>{{transaction.time.strftime("%Y-%m-%d %I:%M:%S%p")}}</td>
+        </tr>
+        {% endfor %}
     </table>
     <a href="/">Back</a>
 </div>
