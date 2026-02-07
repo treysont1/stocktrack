@@ -9,38 +9,38 @@
             <form action="/update/{{stock.id}}" method="POST">
             <table>
                 <tr>
-                    <th>Ticker</th>
-                    <th>Total Invested</th>
-                    <th>Shares Owned</th>
-                    <th>Current Share Price</th>
+                    <th>Type</th>
+                    <th>Share Amount</th>
+                    <th>Price per Share</th>
+                    <th>Date</th>
                     <th>Submit</th>
                 </tr>
                 <tr>
-                    <!--Stock Name Edit-->
+                    <!--Type-->
                     <td>
-                    <input type="text" name="stock_ticker" id="stock_name" value="{{stock.ticker}}"/>
+                    <input type="text" name="transaction_type" id="transaction_type" placeholder="BUY or SELL"/>
                     </td>
 
-                    <!--Total Invested Edit-->
+                    <!--Share Amount-->
                     <td>
-                    <input type="number" step="any" name="stock_total_invested" id="stock_total_invested" value="{{stock.total_invested}}"/>
+                    <input type="number" step="any" name="shares" id="shares" placeholder="0.00"/>
                     </td>
 
-                    <!--Shares Owned Edit-->
+                    <!--Shares Owned-->
                     <td>
-                    <input type="number" step="any" name="stock_shares" id="stock_shares" value="{{stock.shares_owned}}">
+                    <input type="number" step="any" name="price_per_share" id="price_per_share" placeholder="0.00"/>
                     </td>
 
-                    <!--Current Value Edit-->
+                    <!--Date Bought-->
                     <td>
-                    <input type="number" step="any" name="stock_current_share_price" id="stock_current_share_price" value="{{stock.current_share_price}}"/>
+                    <input type="datetime-local" step="any" name="date_bought" id="date_bought"/>
                     </td>
                 
                     <!--Date Bought Edit-->
         <!-- 
                     <input type="text" name="date_bought" id="date_bought" value="{{stock.date_bought}}"/> -->
                     <td>
-                    <input type="submit" value="Update Stock" id="button_edit" />
+                    <input type="submit" value="Add Transaction" id="button_edit" />
                     </td>
                 </tr>
             </table>
