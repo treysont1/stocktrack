@@ -32,3 +32,7 @@ In terminal, enter python3 -c "import secrets; print(secrets.token_hex(32))"
 Copy this output into your SECRET_KEY variable in the .env file
 9. **Launch App:**
 Now, you can run this project by typing "python3 app.py", then clicking on the link provided in the terminal.
+10. **Close App:** 
+To close app, enter Ctrl + C in terminal. To close environment, simply enter deactivate
+
+##### After first time setup, you will only need to run steps 3 and 9.
