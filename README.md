@@ -10,7 +10,7 @@
 
 ### Currently working on
 
-#### Main dashboard view to display basic profit/loss, data visualization, fixing edit pages to reflect transactions rather than overall stock.
+#### Main dashboard view to display basic profit/loss, data visualization, integrating Plaid API in future.
 
 ##### How to run locally: 
 (Note: If you are on Windows device, use python instead of python3 for all commands below)
