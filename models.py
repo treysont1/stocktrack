@@ -99,3 +99,15 @@ class Transaction(db.Model):
     stock_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("stock.id", ondelete='CASCADE'), nullable=False, index=True)
     stock: so.Mapped['Stock'] = db.relationship("Stock", back_populates='transactions')
    
+class StockHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(10), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    open_price = db.Column(db.Float)
+    high_price = db.Column(db.Float)
+    low_price = db.Column(db.Float)
+    close_price = db.Column(db.Float)
+    volume = db.Column(db.Integer)
+
+    def __repr__(self):
+        return f"StockHistory {self.symbol} {self.date}"
