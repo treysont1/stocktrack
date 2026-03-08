@@ -5,6 +5,7 @@
 ### Stock tracker meant to allow users to track investment portfolio across brokerage accounts in one unified platform
 
 ### Current Status
+#### Currently Under Renovation
 
 #### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
