@@ -172,9 +172,9 @@ def delete(id):
         return redirect('/')
     
 #Edit Stock    
-@app.route("/update/<int:id>", methods=["POST", "GET"])
+@app.route("/add_transaction/<int:id>", methods=["POST", "GET"])
 @login_required
-def update(id):
+def add(id):
     stock_update = Stock.query.get_or_404(id)
     transaction = Transaction(stock=stock_update)
     if current_user.id == stock_update.user_id:
@@ -193,10 +193,36 @@ def update(id):
                 print(f"Error:{e}")
                 return f"Error:{e}"
         else:
-            return render_template('update.html', stock=stock_update, )
+            return render_template('update.html', stock=stock_update)
     else:
         flash('Unable to edit stock.')
         return redirect("/")
+    
+@app.route("/edit_transaction/<int:id>", methods=["POST", "GET"])
+@login_required
+def edit(id):
+    transaction_edit = Transaction.query.get_or_404(id)
+    if current_user.id == transaction_edit.stock.user_id:
+        if request.method == "POST":
+            transaction_edit.type = request.form['transaction_type'].upper()
+            transaction_edit.shares = request.form['shares']
+            transaction_edit.price_per_share = request.form['price_per_share']
+            date = request.form['date_bought']
+            # 2026-02-03T23:56
+            transaction_edit.date_bought = datetime.fromisoformat(date)
+            try:
+                db.session.commit()
+                return redirect("/")
+            except Exception as e:
+                print(f"Error:{e}")
+                return f"Error:{e}"
+        else:
+            return render_template('update.html', transaction=transaction_edit)
+    else:
+        flash('Unable to edit stock.')
+        return redirect("/")
+            
+    
 
 
 
