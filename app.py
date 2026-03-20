@@ -43,7 +43,8 @@ def index():
         date = request.form['date']
         datetime_object = datetime.fromisoformat(date)
         # 2026-01-22T15:40
-        if validate_ticker(ticker):
+        validation_result = validate_ticker(ticker)
+        if validation_result[0]:
             try: 
                 stock_present = False
                 for stock in portfolio:
@@ -63,16 +64,18 @@ def index():
                 print(f"Error:{e}")
                 return f"Error:{e}"
         else:
-            flash('Invalid ticker.')
+            
+            flash(validation_result[1])
             return redirect('/')
     # See portfolio
     else:
         
-        current_prices = {}
-        for stock in portfolio:
-            current_price = get_current_price(stock.ticker)
-            current_prices[stock.ticker] = current_price
-        return render_template("index.html", portfolio=portfolio, current_prices=current_prices)
+        # current_prices = {}
+        # for stock in portfolio:
+        #     current_price = get_current_price(stock.ticker) 
+        #     current_prices[stock.ticker] = current_price
+        # pass current_prices=current_prices
+        return render_template("index.html", portfolio=portfolio)
     
 #Login Page
 @app.route('/login', methods=["POST", "GET"])
@@ -149,8 +152,7 @@ def delete_account(id):
 @login_required
 def view(id):
     stock_view = Stock.query.get_or_404(id)
-    current_price = get_current_price(stock_view.ticker)
-    return render_template('info.html', stock=stock_view, current_price=current_price, transactions=stock_view.transactions)
+    return render_template('info.html', stock=stock_view, transactions=stock_view.transactions)
 
 
 #Remove Stock
@@ -171,7 +173,7 @@ def delete(id):
         flash('Unable to delete stock.')
         return redirect('/')
     
-#Edit Stock    
+#Add Transaction to Stock    
 @app.route("/add_transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def add(id):
@@ -183,21 +185,25 @@ def add(id):
             transaction.shares = request.form['shares']
             transaction.price_per_share = request.form['price_per_share']
             date = request.form['date_bought']
-            # 2026-02-03T23:56
             transaction.date_bought = datetime.fromisoformat(date)
-            try:
-                db.session.add(transaction)
-                db.session.commit()
-                return redirect("/")
-            except Exception as e:
-                print(f"Error:{e}")
-                return f"Error:{e}"
+            if transaction.type == "SELL" and stock_update.shares_owned < transaction.shares:
+                flash("Unable to sell more stocks than owned.")
+            else:
+                # 2026-02-03T23:56
+                try:
+                    db.session.add(transaction)
+                    db.session.commit()
+                    return redirect("/")
+                except Exception as e:
+                    print(f"Error:{e}")
+                    return f"Error:{e}"
         else:
-            return render_template('update.html', stock=stock_update)
+            return render_template('transaction.html', stock=stock_update, is_transaction_edit=False)
     else:
         flash('Unable to edit stock.')
         return redirect("/")
     
+# Edit Existing Transaction
 @app.route("/edit_transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def edit(id):
@@ -217,7 +223,7 @@ def edit(id):
                 print(f"Error:{e}")
                 return f"Error:{e}"
         else:
-            return render_template('update.html', transaction=transaction_edit)
+            return render_template('transaction.html', transaction=transaction_edit, is_transaction_edit=True)
     else:
         flash('Unable to edit stock.')
         return redirect("/")
