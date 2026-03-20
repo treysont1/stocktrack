@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from functools import cached_property
 from datetime import datetime
 import sqlalchemy.orm as so
 from stock_validation import get_current_price
@@ -45,6 +46,9 @@ class Stock(db.Model):
     user: so.Mapped[User] = db.relationship("User", back_populates='stocks')
     transactions: so.Mapped[list['Transaction']] = db.relationship("Transaction", back_populates='stock', cascade='all, delete-orphan', order_by='Transaction.time')
 
+    @cached_property
+    def current_price(self):
+        return get_current_price(self.ticker)
     @property
     def shares_owned(self):
         remaining_shares = self._calculate_fifo()
@@ -60,14 +64,19 @@ class Stock(db.Model):
         return self.total_invested / self.shares_owned
     @property
     def current_value(self):
-        return self.shares_owned * get_current_price(self.ticker)
+        if self.current_price is not None:
+            return self.shares_owned * self.current_price
+        return None
     @property
     def unrealized_gain(self):
-        return self.current_value - self.total_invested
+        if self.current_value is not None:
+            return self.current_value - self.total_invested
+        return None
     @property
     def potential_gain_percent(self):
-        if self.total_invested:
+        if self.total_invested and self.unrealized_gain is not None:
             return 100 * self.unrealized_gain / self.total_invested
+        return None
 
 
     def _calculate_fifo(self):
@@ -77,7 +86,7 @@ class Stock(db.Model):
                 remaining_shares.append([t.shares, t.price_per_share])
             else:
                 shares_to_sell = t.shares
-                while shares_to_sell > 0:
+                while shares_to_sell > 0 and remaining_shares:
                     first_in = remaining_shares[0]
                     if first_in[0] > shares_to_sell:
                         first_in[0] -= shares_to_sell
