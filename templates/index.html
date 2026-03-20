@@ -33,10 +33,10 @@
             <td>{{stock.ticker}}</td>
             <td>{{"%.8g"|format(stock.shares_owned)}}</td>
             <td>{{"%.2f"|format(stock.average_cost)}}</td>
-            <td>${{"%.2f"|format(stock.total_invested)}}</td>
-            <td>${{"%.2f"|format(current_prices.get(stock.ticker))}}</td>
-            <td>${{"%.2f"|format(stock.unrealized_gain)}}</td>
-            <td>{{"%.2f"|format(stock.potential_gain_percent)}}%</td>
+            <td>{{"${:,.2f}".format(stock.total_invested)}}</td>
+            <td>{{"${:,.2f}".format(stock.current_price) if stock.current_price is not none else "N/A"}}</td>
+            <td>{{"${:,.2f}".format(stock.unrealized_gain) if stock.current_price is not none else "N/A"}}</td>
+            <td>{{"{:,.2f}%".format(stock.potential_gain_percent) if stock.current_price is not none else "N/A"}}</td>
 
             <td>
                 <a href="/delete/{{stock.id}}">Delete</a>
