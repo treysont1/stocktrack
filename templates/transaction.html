@@ -7,9 +7,9 @@
     <div class="content">
             <h1>{{ 'Edit' if is_transaction_edit else 'Add' }} Transaction</h1>
             {% if is_transaction_edit %}
-            <form action="/edit_transaction/{{transaction.id}}" method="POST">
+            <form action="/edit-transaction/{{transaction.id}}" method="POST">
             {% else %}
-            <form action="/add_transaction/{{stock.id}}" method="POST">
+            <form action="/add-transaction/{{stock.id}}" method="POST">
             {% endif %}
             <table>
                 <tr>
