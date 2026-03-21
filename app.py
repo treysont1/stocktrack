@@ -156,9 +156,9 @@ def view(id):
 
 
 #Remove Stock
-@app.route("/delete/<int:id>", methods=["POST", "GET"])
+@app.route("/delete-stock/<int:id>", methods=["POST", "GET"])
 @login_required
-def delete(id):
+def delete_stock(id):
     stock_delete = Stock.query.get_or_404(id)
     if current_user.id == stock_delete.user_id:
         try:
@@ -174,7 +174,7 @@ def delete(id):
         return redirect('/')
     
 #Add Transaction to Stock    
-@app.route("/add_transaction/<int:id>", methods=["POST", "GET"])
+@app.route("/add-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def add(id):
     stock_update = Stock.query.get_or_404(id)
@@ -195,6 +195,7 @@ def add(id):
                     db.session.commit()
                     return redirect("/")
                 except Exception as e:
+                    db.session.rollback()
                     print(f"Error:{e}")
                     return f"Error:{e}"
         else:
@@ -203,8 +204,28 @@ def add(id):
         flash('Unable to edit stock.')
         return redirect("/")
     
+# Delete Existing Transaction
+@app.route("/delete-transaction/<int:id>", methods=["POST", "GET"])
+@login_required
+def delete_transaction(id):
+    transaction_delete = Transaction.query.get_or_404(id)
+    stock_id = transaction_delete.stock.id
+    if current_user.id == transaction_delete.stock.user_id:
+        try:
+            db.session.delete(transaction_delete)
+            db.session.commit()
+            return redirect(f"/info/{stock_id}")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error:{e}")
+            return f"Error:{e}"
+    else:
+        flash('Unable to delete transaction.')
+        return redirect('/')
+
+    
 # Edit Existing Transaction
-@app.route("/edit_transaction/<int:id>", methods=["POST", "GET"])
+@app.route("/edit-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def edit(id):
     transaction_edit = Transaction.query.get_or_404(id)
