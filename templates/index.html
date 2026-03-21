@@ -34,8 +34,8 @@
             <td>{{"%.8g"|format(stock.shares_owned)}}</td>
             <td>{{"%.2f"|format(stock.average_cost)}}</td>
             <td>{{"${:,.2f}".format(stock.total_invested)}}</td>
-            <td>{{"${:,.2f}".format(stock.current_price) if stock.current_price is not none else "N/A"}}</td>
-            <td>{{"${:,.2f}".format(stock.unrealized_gain) if stock.unrealized_gain is not none else "N/A"}}</td>
+            <td>{{"{:,.2f}".format(stock.current_price) if stock.current_price is not none else "N/A"}}</td>
+            <td>{{("$" if stock.unrealized_gain >= 0 else "-$") + "{:,.2f}".format(stock.unrealized_gain | abs) if stock.unrealized_gain is not none else "N/A"}}</td>
             <td>{{"{:,.2f}%".format(stock.potential_gain_percent) if stock.potential_gain_percent is not none else "N/A"}}</td>
 
             <td>
