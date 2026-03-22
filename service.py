@@ -21,13 +21,13 @@ def calculate_fifo(holding):
 
         holding.shares_owned = sum(lot[0] for lot in lots)
         if holding.shares_owned > 0:
-            total_cost = sum(lot[0] * lot[1] for lot in lots)
-            holding.average_price = total_cost / holding.shares
+            holding.total_invested = sum(lot[0] * lot[1] for lot in lots)
+            holding.average_price = holding.total_invested / holding.shares
         else:
             holding.average_price = 0
 
 # threshold will be datetime.timedelta(days=1)
 def is_stale(stock, threshold):
-    if stock.last_update.date() + threshold > datetime.now():
+    if not stock.last_updated:
         return True
-    return False
+    return stock.last_updated.date() + threshold > datetime.now()
