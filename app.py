@@ -6,7 +6,7 @@ from flask_scss import Scss
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm, DeleteAccount
-from models import db, User, Stock, Transaction
+from models import db, User, Holding, Stock, Transaction
 import requests
 from stock_validation import validate_ticker, get_current_price
 
@@ -35,7 +35,7 @@ def load_user(id):
 @login_required
 def index():    
     #Add Stock
-    portfolio = Stock.query.filter(Stock.user == current_user).order_by(Stock.date_bought).all()
+    portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.date_bought).all()
     if request.method == "POST":
         ticker = request.form['stock'].upper()
         shares = request.form['shares']
@@ -46,6 +46,9 @@ def index():
         validation_result = validate_ticker(ticker)
         if validation_result[0]:
             try: 
+
+                #### Would previously check if the STOCK was in the portfolio, if not, add this STOCK. I need to change this to see if stock 
+                ## is in holdings, and also, if stock is present in stocks as well.
                 stock_present = False
                 for stock in portfolio:
                     if stock.ticker == ticker:
