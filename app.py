@@ -8,7 +8,8 @@ from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Stock, Transaction
 import requests
-from stock_validation import validate_ticker, get_current_price
+from service import calculate_fifo
+from stock_validation import validate_and_fetch
 
 
 app = Flask(__name__)
@@ -35,49 +36,39 @@ def load_user(id):
 @login_required
 def index():    
     #Add Stock
-    portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.date_bought).all()
+    portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.total_invested.desc()).all()
     if request.method == "POST":
         ticker = request.form['stock'].upper()
-        shares = request.form['shares']
-        price = request.form['price']
+        shares = float(request.form['shares'])
+        price_bought = float(request.form['price'])
         date = request.form['date']
         datetime_object = datetime.fromisoformat(date)
         # 2026-01-22T15:40
-        validation_result = validate_ticker(ticker)
-        if validation_result[0]:
-            try: 
-
-                #### Would previously check if the STOCK was in the portfolio, if not, add this STOCK. I need to change this to see if stock 
-                ## is in holdings, and also, if stock is present in stocks as well.
-                stock_present = False
-                for stock in portfolio:
-                    if stock.ticker == ticker:
-                        new_stock = stock
-                        stock_present = True
-                        break
-                if not stock_present:
-                    new_stock = Stock(ticker=ticker, user=current_user)
-                db.session.add(new_stock)
-                transaction = Transaction(type="BUY", shares=shares, price_per_share=price, time=datetime_object, stock=new_stock)
+        valid, current_price, error = validate_and_fetch(ticker)
+        if valid:
+            try:
+                existing_holding = next((h for h in portfolio if h.stock.ticker == ticker), None)
+                existing_stock = existing_holding.stock if existing_holding else Stock.query.filter_by(ticker=ticker).first()
+                if existing_stock is None:
+                    existing_stock = Stock(ticker=ticker, current_price=current_price)
+                    db.session.add(existing_stock)
+                if existing_holding is None:
+                    existing_holding = Holding(user=current_user, stock=existing_stock)
+                    db.session.add(existing_holding)
+                transaction = Transaction(type="BUY", shares=shares, price_per_share=price_bought, time=datetime_object, holding=existing_holding)   
                 db.session.add(transaction)
+                calculate_fifo(existing_holding)
                 db.session.commit()
                 return redirect("/")
             except Exception as e:
                 db.session.rollback()
                 print(f"Error:{e}")
                 return f"Error:{e}"
-        else:
-            
-            flash(validation_result[1])
+        else:      
+            flash(error)
             return redirect('/')
     # See portfolio
     else:
-        
-        # current_prices = {}
-        # for stock in portfolio:
-        #     current_price = get_current_price(stock.ticker) 
-        #     current_prices[stock.ticker] = current_price
-        # pass current_prices=current_prices
         return render_template("index.html", portfolio=portfolio)
     
 #Login Page
@@ -131,7 +122,7 @@ def register():
 @login_required
 def delete_account(id):
     form = DeleteAccount()
-    # user = db.session.scalar(db.select(User).where(User.username == current_user.username))
+    # user = db.session.scalar(db.select(User).where(User.username == current_user.username)) is new version, move to in future
     user_delete = User.query.get_or_404(id)
     if form.validate_on_submit():
         if user_delete.verify_password(form.password.data) and form.confirm.data == True:
@@ -150,22 +141,22 @@ def delete_account(id):
     return render_template('delete_account.html', form=form)
 
 
-#Stock Info
+#View Holding Info
 @app.route("/info/<int:id>", methods=["GET"])
 @login_required
 def view(id):
-    stock_view = Stock.query.get_or_404(id)
-    return render_template('info.html', stock=stock_view, transactions=stock_view.transactions)
+    holding_view = Holding.query.get_or_404(id)
+    return render_template('info.html', holding=holding_view, transactions=holding_view.transactions)
 
 
 #Remove Stock
 @app.route("/delete-stock/<int:id>", methods=["POST", "GET"])
 @login_required
 def delete_stock(id):
-    stock_delete = Stock.query.get_or_404(id)
-    if current_user.id == stock_delete.user_id:
+    holding_delete = Holding.query.get_or_404(id)
+    if current_user.id == holding_delete.user_id:
         try:
-            db.session.delete(stock_delete)
+            db.session.delete(holding_delete)
             db.session.commit()
             return redirect('/')
         except Exception as e:
@@ -180,21 +171,22 @@ def delete_stock(id):
 @app.route("/add-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def add(id):
-    stock_update = Stock.query.get_or_404(id)
-    transaction = Transaction(stock=stock_update)
-    if current_user.id == stock_update.user_id:
+    holding_update = Holding.query.get_or_404(id)
+    transaction = Transaction(holding=holding_update)
+    if current_user.id == holding_update.user_id:
         if request.method == "POST":
             transaction.type = request.form['transaction_type'].upper()
-            transaction.shares = request.form['shares']
-            transaction.price_per_share = request.form['price_per_share']
+            transaction.shares = float(request.form['shares'])
+            transaction.price_per_share = float(request.form['price_per_share'])
             date = request.form['date_bought']
-            transaction.date_bought = datetime.fromisoformat(date)
-            if transaction.type == "SELL" and stock_update.shares_owned < transaction.shares:
+            transaction.time = datetime.fromisoformat(date)
+            if transaction.type == "SELL" and holding_update.shares_owned < transaction.shares:
                 flash("Unable to sell more stocks than owned.")
             else:
                 # 2026-02-03T23:56
                 try:
                     db.session.add(transaction)
+                    calculate_fifo(holding_update)
                     db.session.commit()
                     return redirect("/")
                 except Exception as e:
@@ -202,7 +194,7 @@ def add(id):
                     print(f"Error:{e}")
                     return f"Error:{e}"
         else:
-            return render_template('transaction.html', stock=stock_update, is_transaction_edit=False)
+            return render_template('transaction.html', holding=holding_update, is_transaction_edit=False)
     else:
         flash('Unable to edit stock.')
         return redirect("/")
@@ -212,12 +204,13 @@ def add(id):
 @login_required
 def delete_transaction(id):
     transaction_delete = Transaction.query.get_or_404(id)
-    stock_id = transaction_delete.stock.id
-    if current_user.id == transaction_delete.stock.user_id:
+    holding_id = transaction_delete.holding_id
+    if current_user.id == transaction_delete.holding.user_id:
         try:
             db.session.delete(transaction_delete)
+            calculate_fifo(transaction_delete.holding)
             db.session.commit()
-            return redirect(f"/info/{stock_id}")
+            return redirect(f"/info/{holding_id}")
         except Exception as e:
             db.session.rollback()
             print(f"Error:{e}")
@@ -232,15 +225,16 @@ def delete_transaction(id):
 @login_required
 def edit(id):
     transaction_edit = Transaction.query.get_or_404(id)
-    if current_user.id == transaction_edit.stock.user_id:
+    if current_user.id == transaction_edit.holding.user_id:
         if request.method == "POST":
             transaction_edit.type = request.form['transaction_type'].upper()
-            transaction_edit.shares = request.form['shares']
-            transaction_edit.price_per_share = request.form['price_per_share']
+            transaction_edit.shares = float(request.form['shares'])
+            transaction_edit.price_per_share = float(request.form['price_per_share'])
             date = request.form['date_bought']
             # 2026-02-03T23:56
-            transaction_edit.date_bought = datetime.fromisoformat(date)
+            transaction_edit.time = datetime.fromisoformat(date)
             try:
+                calculate_fifo(transaction_edit.holding)
                 db.session.commit()
                 return redirect("/")
             except Exception as e:
@@ -256,7 +250,7 @@ def edit(id):
 
 
 
-if __name__ in "__main__":
+if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 

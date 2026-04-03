@@ -1,14 +1,17 @@
 import requests
 
-def validate_ticker(ticker):
-    return (True, "_")
-    # url = f"https://stockprices.dev/api/stocks/{ticker}"
-    # results = requests.get(url)
-    # if results.status_code == 200:
-    #     return (True, "_")
-    # elif results.status_code == 404:
-    #     return (False, "Invalid Ticker.")
-    # return (False, "API ISSUE")
+def validate_and_fetch(ticker):
+    return (True, 14, "_")
+
+
+    url = f"https://stockprices.dev/api/stocks/{ticker}"
+    results = requests.get(url)
+    if results.status_code == 200:
+        return (True, results.json()['Price'], None)
+    elif results.status_code == 404:
+        return (False, None, "Invalid Ticker.")
+    return (False, None, "API ISSUE")
+
 
 def get_current_price(ticker):
     return 14

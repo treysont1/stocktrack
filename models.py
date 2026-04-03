@@ -47,7 +47,7 @@ class Holding(db.Model):
 
     @property
     def current_value(self):
-        if self.current_price is not None:
+        if self.stock.current_price is not None:
             return self.shares_owned * self.stock.current_price
         return None
     @property
@@ -65,9 +65,8 @@ class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ticker = db.Column(db.String(25), nullable=False) 
     current_price = db.Column(db.Float)
-    total_value = db.Column(db.Integer, default=0) 
     last_updated = db.Column(db.DateTime)
-    holdings: so.Mapped[list['Holding']] = db.relationship("Holding", back_populates='stock', cascade='all, delete-orphan')
+    holding: so.Mapped[list['Holding']] = db.relationship("Holding", back_populates='stock', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"Stock {self.id}: {self.ticker}"
@@ -92,4 +91,4 @@ class StockHistory(db.Model):
     volume = db.Column(db.Integer)
 
     def __repr__(self):
-        return f"StockHistory {self.symbol} {self.date}"
+        return f"StockHistory {self.ticker} {self.date}"

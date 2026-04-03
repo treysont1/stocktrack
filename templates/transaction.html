@@ -9,7 +9,7 @@
             {% if is_transaction_edit %}
             <form action="/edit-transaction/{{transaction.id}}" method="POST">
             {% else %}
-            <form action="/add-transaction/{{stock.id}}" method="POST">
+            <form action="/add-transaction/{{holding.id}}" method="POST">
             {% endif %}
             <table>
                 <tr>
@@ -22,27 +22,29 @@
                 <tr>
                     <!--Type-->
                     <td>
-                    <input type="text" name="transaction_type" id="transaction_type" placeholder="BUY or SELL"/>
+                    <select name="transaction_type" id="transaction_type"required>
+                        <option value="BUY" {{ 'selected' if is_transaction_edit and transaction.type == 'BUY' }}>BUY</option>
+                        <option value="SELL" {{ 'selected' if is_transaction_edit and transaction.type == 'SELL' }}>SELL</option>
+                    </select>
                     </td>
 
                     <!--Share Amount-->
                     <td>
-                    <input type="number" step="any" name="shares" id="shares" placeholder="0.00"/>
+                    <input type="number" step="any" name="shares" id="shares" value="{{ transaction.shares if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.shares if is_transaction_edit else '0.00' }}"/>
                     </td>
 
-                    <!--Shares Owned-->
+                    <!--Price Per Share-->
                     <td>
-                    <input type="number" step="any" name="price_per_share" id="price_per_share" placeholder="0.00"/>
+                    <input type="number" step="any" name="price_per_share" id="price_per_share" value="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}"/>
                     </td>
 
                     <!--Date Bought-->
                     <td>
-                    <input type="datetime-local" step="any" name="date_bought" id="date_bought"/>
+                    <input type="datetime-local" step="any" name="date_bought" id="date_bought" value="{{ transaction.time.strftime('%Y-%m-%dT%H:%M') if is_transaction_edit else '' }}" />
                     </td>
+
+                    <!-- fill in blanks for date bought/time -->
                 
-                    <!--Date Bought Edit-->
-        <!-- 
-                    <input type="text" name="date_bought" id="date_bought" value="{{stock.date_bought}}"/> -->
                     <td>
                     {% if is_transaction_edit %}
                     <input type="submit" value="Edit Transaction" id="button_edit" />

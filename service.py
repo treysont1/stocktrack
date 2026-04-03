@@ -11,18 +11,18 @@ def calculate_fifo(holding):
             else:
                 shares_to_sell = t.shares
                 while shares_to_sell > 0 and lots:
-                    lots = lots[0]
-                    if lots[0][0] > shares_to_sell:
-                        lots[0][0] -= shares_to_sell
+                    lot = lots[0]
+                    if lot[0] > shares_to_sell:
+                        lots[0] = (lot[0] - shares_to_sell, lot[1])
                         shares_to_sell = 0
                     else:
-                        shares_to_sell -= lots[0][0]
+                        shares_to_sell -= lot[0]
                         lots.pop(0)
 
         holding.shares_owned = sum(lot[0] for lot in lots)
         if holding.shares_owned > 0:
             holding.total_invested = sum(lot[0] * lot[1] for lot in lots)
-            holding.average_price = holding.total_invested / holding.shares
+            holding.average_price = holding.total_invested / holding.shares_owned
         else:
             holding.average_price = 0
 
@@ -30,4 +30,4 @@ def calculate_fifo(holding):
 def is_stale(stock, threshold):
     if not stock.last_updated:
         return True
-    return stock.last_updated.date() + threshold > datetime.now()
+    return stock.last_updated.date() + threshold < datetime.now()
