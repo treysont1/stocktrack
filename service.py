@@ -1,7 +1,8 @@
 from datetime import datetime
+import yfinance as yf
+from models import StockHistory
 
-#Important Functions 
-
+#Important Functions
 
 def calculate_fifo(holding):
         lots = []
@@ -27,7 +28,29 @@ def calculate_fifo(holding):
             holding.average_price = 0
 
 # threshold will be datetime.timedelta(days=1)
-def is_stale(stock, threshold):
+threshold = datetime.timedelta(days=1)
+def is_stale(stock):
     if not stock.last_updated:
         return True
     return stock.last_updated.date() + threshold < datetime.now()
+
+# If is stale, call yfinance + update time last updated
+
+def fetch_and_store_history(ticker, db):
+    latest = StockHistory.query.filter_by(ticker=ticker).order_by(StockHistory.date.desc()).first()
+    if latest and latest.date == datetime.today():
+        return
+
+    history = yf.Ticker(ticker).history(period="1y")
+    for row in history.itertuples():
+        entry = StockHistory(
+            ticker=ticker,
+            date = row.Index.date(),
+            open_price = row.Open,
+            high_price = row.High,
+            low_price = row.Low,
+            close_price = row.Close,
+            volume=int(row.Volume)
+        )
+        db.session.add(entry)
+    db.session.commit()

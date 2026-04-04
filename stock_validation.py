@@ -1,25 +1,25 @@
 import requests
+import yfinance as yf
 
 def validate_and_fetch(ticker):
-    return (True, 14, "_")
+    # return (True, 14, "_")
 
 
-    url = f"https://stockprices.dev/api/stocks/{ticker}"
-    results = requests.get(url)
-    if results.status_code == 200:
-        return (True, results.json()['Price'], None)
-    elif results.status_code == 404:
-        return (False, None, "Invalid Ticker.")
-    return (False, None, "API ISSUE")
+    try:
+        info = yf.Ticker(ticker).info
+        price = info.get("regularMarketPrice")
+        if price is None:
+            return (False, None, "Invalid Ticker")
+        return (True, price, None)
+    except Exception:
+        return (False, None, "API error.")
 
 
-def get_current_price(ticker):
-    return 14
-    # # print("called")
-    # url = f"https://stockprices.dev/api/stocks/{ticker}"
-    # results = requests.get(url)
-    # if results.status_code != 200:
-    #     return None
-    # stock_data = results.json()
-    # # print(type(stock_data), stock_data)
-    # return stock_data['Price']
+
+# NOT BEING USED RIGHT NOW
+# def get_current_price(ticker):
+#     try:
+#         info = yf.Ticker(ticker).info
+#         return info.get("regularMarketPrice")
+#     except Exception:
+#         return None
