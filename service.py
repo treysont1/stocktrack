@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import yfinance as yf
-from models import StockHistory
+from stock_validation import get_current_price
 
 #Important Functions
 
@@ -28,20 +28,32 @@ def calculate_fifo(holding):
             holding.average_price = 0
 
 # threshold will be datetime.timedelta(days=1)
-threshold = datetime.timedelta(days=1)
+threshold = timedelta(days=1)
 def is_stale(stock):
     if not stock.last_updated:
         return True
-    return stock.last_updated.date() + threshold < datetime.now()
+    return stock.last_updated.date() + threshold < datetime.now().date()
+
+def update_if_stale(stock):
+    if is_stale(stock):
+        stock.current_price = get_current_price(stock.ticker)
+        stock.last_updated = datetime.now()
 
 # If is stale, call yfinance + update time last updated
 
 def fetch_and_store_history(ticker, db):
+    from models import StockHistory
+
     latest = StockHistory.query.filter_by(ticker=ticker).order_by(StockHistory.date.desc()).first()
     if latest and latest.date == datetime.today():
         return
 
     history = yf.Ticker(ticker).history(period="1y")
+    if history.empty:
+        return
+    
+    StockHistory.query.filter_by(ticker=ticker).delete()
+
     for row in history.itertuples():
         entry = StockHistory(
             ticker=ticker,
