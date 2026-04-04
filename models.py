@@ -3,7 +3,6 @@ from flask_login import UserMixin
 from functools import cached_property
 from datetime import datetime
 import sqlalchemy.orm as so
-from stock_validation import get_current_price
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
