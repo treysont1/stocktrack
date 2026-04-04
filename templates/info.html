@@ -6,6 +6,7 @@
 {% block body %}
 <div class="content">
     <h1>{{holding.stock.ticker}}</h1>
+    <canvas id="priceChart" style="max-height: 400px; margin: 30px 0;"></canvas>
     <table>
         <tr>
             <th>Ticker</th>
@@ -54,4 +55,35 @@
     </table>
     <a href="/">Back</a>
 </div>
+<script>
+    const ticker = "{{ holding.stock.ticker }}";
+    fetch(`/history/${ticker}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById("priceChart").getContext("2d")
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: ticker + ' Close Price',
+                        data: data.prices, 
+                        borderColor: '#3c6aea',
+                        backgroundColor: 'rgba(60, 106, 234, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 12} },
+                        y: { ticks: { callback: value => '$' + value.toFixed(2) } }
+                    }
+                }
+            });
+        });
+</script>
 {% endblock %}
