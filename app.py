@@ -1,14 +1,14 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, request, session, flash
+from flask import Flask, render_template, redirect, request, session, flash, jsonify
 from flask_scss import Scss
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm, DeleteAccount
-from models import db, User, Holding, Stock, Transaction
+from models import db, User, Holding, Stock, Transaction, StockHistory
 import requests
-from service import calculate_fifo
+from service import calculate_fifo, update_if_stale, fetch_and_store_history
 from stock_validation import validate_and_fetch
 
 
@@ -37,6 +37,10 @@ def load_user(id):
 def index():    
     #Add Stock
     portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.total_invested.desc()).all()
+    for holding in portfolio:
+        update_if_stale(holding.stock)
+    db.session.commit()
+
     if request.method == "POST":
         ticker = request.form['stock'].upper()
         shares = float(request.form['shares'])
@@ -146,7 +150,18 @@ def delete_account(id):
 @login_required
 def view(id):
     holding_view = Holding.query.get_or_404(id)
+    update_if_stale(holding_view.stock)
+    fetch_and_store_history(holding_view.stock.ticker, db)
     return render_template('info.html', holding=holding_view, transactions=holding_view.transactions)
+
+#Returns JSON to render graphics
+@app.route("/history/<ticker>", methods=["GET"])
+@login_required
+def history_api(ticker):
+    rows = StockHistory.query.filter_by(ticker=ticker.upper()).order_by(StockHistory.date.asc()).all()
+    labels = [row.date.strftime("%Y-%m-%d") for row in rows]
+    prices = [row.close_price for row in rows]
+    return jsonify({"labels": labels, "prices": prices})
 
 
 #Remove Stock
