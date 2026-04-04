@@ -158,7 +158,13 @@ def view(id):
 @app.route("/history/<ticker>", methods=["GET"])
 @login_required
 def history_api(ticker):
-    rows = StockHistory.query.filter_by(ticker=ticker.upper()).order_by(StockHistory.date.asc()).all()
+    period = request.args.get("period", "1y")
+    limits = {"1m": 21, "1y": 252, "5y": 9999}
+    limit = limits.get(period, 252)
+
+    rows = StockHistory.query.filter_by(ticker=ticker.upper()).order_by(StockHistory.date.desc()).limit(limit).all()
+    rows.reverse()
+    
     labels = [row.date.strftime("%Y-%m-%d") for row in rows]
     prices = [row.close_price for row in rows]
     return jsonify({"labels": labels, "prices": prices})

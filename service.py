@@ -48,7 +48,7 @@ def fetch_and_store_history(ticker, db):
     if latest and latest.date == datetime.today():
         return
 
-    history = yf.Ticker(ticker).history(period="1y")
+    history = yf.Ticker(ticker).history(period="5y")
     if history.empty:
         return
     
