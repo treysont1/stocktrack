@@ -5,13 +5,13 @@
 ### Stock tracker meant to allow users to track investment portfolio across brokerage accounts in one unified platform
 
 ### Current Status
-#### Currently Under Renovation
+#### Adding in overall portfolio data chart + plotting points where stock was bought
 
 #### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
 ### Currently working on
 
-#### Main dashboard view to display basic profit/loss, data visualization, integrating Plaid API in future.
+#### Main dashboard view to display basic profit/loss, integrating Plaid API in future (maybe).
 
 ##### How to run locally: 
 (Note: If you are on Windows device, use python instead of python3 for all commands below)
