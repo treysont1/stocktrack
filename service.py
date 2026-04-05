@@ -47,14 +47,24 @@ def fetch_and_store_history(ticker, db):
     latest = StockHistory.query.filter_by(ticker=ticker).order_by(StockHistory.date.desc()).first()
     if latest and latest.date == datetime.today():
         return
-
-    history = yf.Ticker(ticker).history(period="5y")
+    
+    if latest:
+        history = yf.Ticker(ticker).history(start=latest.date.isoformat())
+    else:
+        history = yf.Ticker(ticker).history(period="5y")
+    ## change interval to lower if month? also day in future if necessary
+    
     if history.empty:
         return
-    
-    StockHistory.query.filter_by(ticker=ticker).delete()
 
+    existing_dates = set()
+    if latest:
+        existing_dates = {row.date for row in StockHistory.query.filter_by(ticker=ticker)}
+    
     for row in history.itertuples():
+        row_date = row.Index.date()
+        if row_date in existing_dates:
+            continue
         entry = StockHistory(
             ticker=ticker,
             date = row.Index.date(),
