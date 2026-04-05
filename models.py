@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(128), unique=True)
     password_hash = db.Column(db.String(128))
     holdings: so.Mapped[list['Holding']] = db.relationship("Holding", back_populates='user', cascade='all, delete-orphan')
+    # portfolio_history: so.Mapped['PortfolioHistory'] = db.relationship("PortfolioHistory", back_populates='user')
 
     @property
     def password(self):
@@ -91,3 +92,9 @@ class StockHistory(db.Model):
 
     def __repr__(self):
         return f"StockHistory {self.ticker} {self.date}"
+
+class PortfolioHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False)
+    total_value = db.Column(db.Float, nullable=False)
