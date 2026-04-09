@@ -70,10 +70,10 @@ def index():
         return render_template("index.html", portfolio=portfolio)
 
 #Returns JSON to render portfolio performance graphics
-@app.route("/portfolio_history/<user_id>", methods=["GET"])
+@app.route("/portfolio-history", methods=["GET"])
 @login_required
 def portfolio_history_api(user_id):
-    period = request.args.get("period", "1y")
+    period = request.args.get("period", "1m")
     limits = {"1m": 21, "1y": 252, "5y": 1260}
     limit = limits.get(period)
 

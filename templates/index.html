@@ -72,7 +72,7 @@
     let chart = null;
 
     function loadChart(period){
-        fetch(`/portfolio_history/${user}?period=${period}`)
+        fetch(`/portfolio-history?period=${period}`)
             .then(response => response.json())
             .then(data => {
                 if (chart){
