@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, request, session, flash, jsonify
 from flask_scss import Scss
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Stock, Transaction, StockHistory, PortfolioHistory
@@ -24,14 +26,19 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.secret_key = os.getenv("SECRET_KEY")
 db.init_app(app)
 migrate = Migrate(app, db)
-#Data - Row of Data
+limiter = Limiter(app, key_func=lambda: str(current_user.id) if current_user.is_authenticated else get_remote_address())
     
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
 
+@app.errorhandler(429)
+def rate_limit_exceeded(e):
+    flash("Too many requests. Please wait before trying again.")
+    return redirect(request.referrer or '/')
 
 #Homepage
+@limiter.limit("5 per minute")
 @app.route("/", methods=["POST", "GET"])
 @login_required
 def index():    
@@ -88,6 +95,7 @@ def portfolio_history_api():
     return jsonify({"labels": labels, "prices": prices})
 
 #Login Page
+@limiter.limit("5 per minute")
 @app.route('/login', methods=["POST", "GET"])
 def login():
     if current_user.is_authenticated:
@@ -110,6 +118,7 @@ def logout():
     return redirect('/')
 
 #Registration Page
+@limiter.limit("5 per minute")
 @app.route('/register', methods=["POST", "GET"])
 def register():
     form = RegistrationForm()
@@ -158,6 +167,7 @@ def delete_account(id):
 
 
 #View Holding Info
+@limiter.limit("5 per minute")
 @app.route("/info/<int:id>", methods=["GET"])
 @login_required
 def view(id):
