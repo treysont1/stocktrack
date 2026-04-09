@@ -6,9 +6,9 @@ from flask_scss import Scss
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_migrate import Migrate
 from forms import LoginForm, RegistrationForm, DeleteAccount
-from models import db, User, Holding, Stock, Transaction, StockHistory
+from models import db, User, Holding, Stock, Transaction, StockHistory, PortfolioHistory
 import requests
-from service import calculate_fifo, update_if_stale, fetch_and_store_history
+from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
 from stock_validation import validate_and_fetch
 
 
@@ -39,29 +39,23 @@ def index():
     portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.total_invested.desc()).all()
     for holding in portfolio:
         update_if_stale(holding.stock)
+        fetch_and_store_history(holding.stock.ticker, db)
+    db.session.commit()
+    store_portfolio_history_if_needed(current_user, portfolio, db)
     db.session.commit()
 
     if request.method == "POST":
-        ticker = request.form['stock'].upper()
-        shares = float(request.form['shares'])
-        price_bought = float(request.form['price'])
-        date = request.form['date']
-        datetime_object = datetime.fromisoformat(date)
+        order = {
+            "ticker": request.form['stock'].upper(),
+            "shares": float(request.form['shares']),
+            "price_bought": float(request.form['price']),
+            "date": datetime.fromisoformat(request.form['date'])
+        }
         # 2026-01-22T15:40
-        valid, current_price, error = validate_and_fetch(ticker)
+        valid, current_price, error = validate_and_fetch(order["ticker"])
         if valid:
             try:
-                existing_holding = next((h for h in portfolio if h.stock.ticker == ticker), None)
-                existing_stock = existing_holding.stock if existing_holding else Stock.query.filter_by(ticker=ticker).first()
-                if existing_stock is None:
-                    existing_stock = Stock(ticker=ticker, current_price=current_price)
-                    db.session.add(existing_stock)
-                if existing_holding is None:
-                    existing_holding = Holding(user=current_user, stock=existing_stock)
-                    db.session.add(existing_holding)
-                transaction = Transaction(type="BUY", shares=shares, price_per_share=price_bought, time=datetime_object, holding=existing_holding)   
-                db.session.add(transaction)
-                calculate_fifo(existing_holding)
+                buy_stock(current_user, portfolio, db, order, current_price)
                 db.session.commit()
                 return redirect("/")
             except Exception as e:
@@ -74,7 +68,25 @@ def index():
     # See portfolio
     else:
         return render_template("index.html", portfolio=portfolio)
+
+#Returns JSON to render portfolio performance graphics
+@app.route("/portfolio_history/<user_id>", methods=["GET"])
+@login_required
+def portfolio_history_api(user_id):
+    period = request.args.get("period", "1y")
+    limits = {"1m": 21, "1y": 252, "5y": 1260}
+    limit = limits.get(period)
+
+    query = PortfolioHistory.query.filter_by(user_id=current_user.id).order_by(PortfolioHistory.date.desc())
+    if limit:
+        query = query.limit(limit)
+    rows = query.all()
+    rows.reverse()
     
+    labels = [row.date.strftime("%Y-%m-%d") for row in rows]
+    prices = [row.total_value for row in rows]
+    return jsonify({"labels": labels, "prices": prices})
+
 #Login Page
 @app.route('/login', methods=["POST", "GET"])
 def login():
@@ -152,17 +164,21 @@ def view(id):
     holding_view = Holding.query.get_or_404(id)
     update_if_stale(holding_view.stock)
     fetch_and_store_history(holding_view.stock.ticker, db)
+    db.session.commit()
     return render_template('info.html', holding=holding_view, transactions=holding_view.transactions)
 
-#Returns JSON to render graphics
+#Returns JSON to render individual stock graphics
 @app.route("/history/<ticker>", methods=["GET"])
 @login_required
-def history_api(ticker):
+def stock_history_api(ticker):
     period = request.args.get("period", "1y")
-    limits = {"1m": 21, "1y": 252, "5y": 9999}
-    limit = limits.get(period, 252)
+    limits = {"1m": 21, "1y": 252, "5y": 1260}
+    limit = limits.get(period)
 
-    rows = StockHistory.query.filter_by(ticker=ticker.upper()).order_by(StockHistory.date.desc()).limit(limit).all()
+    query = StockHistory.query.filter_by(ticker=ticker.upper()).order_by(StockHistory.date.desc())
+    if limit:
+        query = query.limit(limit)
+    rows = query.all()
     rows.reverse()
     
     labels = [row.date.strftime("%Y-%m-%d") for row in rows]

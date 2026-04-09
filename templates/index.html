@@ -17,6 +17,11 @@
     <h1>StockTrack</h1>
     <table>
     {% if portfolio | length > 0 %}
+        <canvas id="valueChart" style="max-height: 400px; margin: 30px 0;"></canvas>
+        <button onclick="loadChart('all')">ALL</button>
+        <button onclick="loadChart('5y')">5Y</button>
+        <button onclick="loadChart('1y')">1Y</button>
+        <button onclick="loadChart('1m')">1M</button>
         <tr>
             <th>Stock</th>
             <th>Shares</th>
@@ -62,4 +67,44 @@
         </form>
     </table>
 </div>
+<script>
+    const user = "{{ current_user.id }}";
+    let chart = null;
+
+    function loadChart(period){
+        fetch(`/portfolio_history/${user}?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                if (chart){
+                    chart.destroy()
+                }
+                const ctx = document.getElementById("valueChart").getContext("2d")
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            // user.
+                            label: 'Portfolio Value',
+                            data: data.prices, 
+                            borderColor: '#3c6aea',
+                            backgroundColor: 'rgba(60, 106, 234, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { ticks: { maxTicksLimit: 12} },
+                            y: { ticks: { callback: value => '$' + value.toFixed(2) } }
+                        }
+                    }
+                });
+            });
+    }
+    loadChart('1m')
+</script>
 {% endblock %}

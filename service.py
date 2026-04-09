@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import yfinance as yf
 from stock_validation import get_current_price
+from models import StockHistory, PortfolioHistory, Transaction, Holding, Stock
 
 #Important Functions
 
@@ -27,6 +28,19 @@ def calculate_fifo(holding):
         else:
             holding.average_price = 0
 
+def buy_stock(user, portfolio, db, order, current_price):
+    existing_holding = next((h for h in portfolio if h.stock.ticker == order["ticker"]), None)
+    existing_stock = existing_holding.stock if existing_holding else Stock.query.filter_by(ticker=order["ticker"]).first()
+    if existing_stock is None:
+        existing_stock = Stock(ticker=order["ticker"], current_price=current_price)
+        db.session.add(existing_stock)
+    if existing_holding is None:
+        existing_holding = Holding(user=user, stock=existing_stock)
+        db.session.add(existing_holding)
+    transaction = Transaction(type="BUY", shares=order["shares"], price_per_share=order["price_bought"], time=order["date"], holding=existing_holding)   
+    db.session.add(transaction)
+    calculate_fifo(existing_holding)
+
 # threshold will be datetime.timedelta(days=1)
 threshold = timedelta(days=1)
 def is_stale(stock):
@@ -42,16 +56,14 @@ def update_if_stale(stock):
 # If is stale, call yfinance + update time last updated
 
 def fetch_and_store_history(ticker, db):
-    from models import StockHistory
-
     latest = StockHistory.query.filter_by(ticker=ticker).order_by(StockHistory.date.desc()).first()
-    if latest and latest.date == datetime.today():
+    if latest and latest.date == date.today():
         return
     
     if latest:
         history = yf.Ticker(ticker).history(start=latest.date.isoformat())
     else:
-        history = yf.Ticker(ticker).history(period="5y")
+        history = yf.Ticker(ticker).history(period="max")
     ## change interval to lower if month? also day in future if necessary
     
     if history.empty:
@@ -75,4 +87,42 @@ def fetch_and_store_history(ticker, db):
             volume=int(row.Volume)
         )
         db.session.add(entry)
-    db.session.commit()
+
+
+def store_portfolio_history_if_needed(user, holdings, db):
+    latest = PortfolioHistory.query.filter_by(user_id=user.id).order_by(PortfolioHistory.date.desc()).first()
+    if latest and latest.date == date.today():
+        return
+    elif latest:
+        start_date = latest.date
+    else:
+        first_transaction = Transaction.query.join(Holding).filter(Holding.user_id == user.id).order_by(Transaction.time.asc()).first()
+        start_date = first_transaction.time.date() if first_transaction else date.today()
+
+    current = start_date
+
+    holding_transactions = {
+        holding.id: sorted(holding.transactions, key=lambda t: t.time.date())
+        for holding in holdings
+    }
+    shares_owned = {holding.id: 0 for holding in holdings}
+    transaction_index = {holding.id: 0 for holding in holdings}
+
+    while current <= date.today():
+        total_value = 0
+        for holding in holdings:
+            while transaction_index[holding.id] < len(holding_transactions[holding.id]) and holding_transactions[holding.id][transaction_index[holding.id]].time.date() <= current:
+                transaction = holding_transactions[holding.id][transaction_index[holding.id]]
+                if transaction.type == "BUY":
+                    shares_owned[holding.id] += transaction.shares
+                else:
+                    shares_owned[holding.id] -= transaction.shares
+                transaction_index[holding.id] += 1
+            price_row = StockHistory.query.filter_by(ticker=holding.stock.ticker, date=current).first()
+            if price_row:
+                total_value += shares_owned[holding.id] * price_row.close_price
+        
+        if total_value > 0:
+            entry = PortfolioHistory(user_id=user.id, date=current, total_value=total_value)
+            db.session.add(entry)
+        current += timedelta(days=1)

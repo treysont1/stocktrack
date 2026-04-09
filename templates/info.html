@@ -7,6 +7,7 @@
 <div class="content">
     <h1>{{holding.stock.ticker}}</h1>
     <canvas id="priceChart" style="max-height: 400px; margin: 30px 0;"></canvas>
+    <button onclick="loadChart('all')">ALL</button>
     <button onclick="loadChart('5y')">5Y</button>
     <button onclick="loadChart('1y')">1Y</button>
     <button onclick="loadChart('1m')">1M</button>
@@ -94,7 +95,7 @@
                     }
                 });
             });
-        }
+    }
     loadChart('1y')
 </script>
 {% endblock %}
