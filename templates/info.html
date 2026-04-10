@@ -49,7 +49,10 @@
             <td>{{"%.2f"|format(transaction.price_per_share)}}</td>
             <td>{{transaction.time.strftime("%Y-%m-%d %I:%M:%S%p")}}</td>
             <td>
-                <a href="/delete-transaction/{{transaction.id}}">Delete</a>
+                <form action="/delete-transaction/{{transaction.id}}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" onclick="return confirm('Delete this transaction?')">Delete</button>
+                </form>
                 <br/>
                 <a href="/edit-transaction/{{transaction.id}}">Edit Transaction</a>
                 <br/>

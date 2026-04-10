@@ -1,21 +1,22 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, request, session, flash, jsonify
+from flask import Flask, render_template, redirect, request, flash, jsonify
 from flask_scss import Scss
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Stock, Transaction, StockHistory, PortfolioHistory
-import requests
 from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
 from stock_validation import validate_and_fetch
 
 
 app = Flask(__name__)
 Scss(app)
+CSRFProtect(app)
 login = LoginManager(app)
 login.login_view = 'login'
 # login_manager.init_app(app)
@@ -38,7 +39,7 @@ def rate_limit_exceeded(e):
     return redirect(request.referrer or '/')
 
 #Homepage
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute", methods=["POST"])
 @app.route("/", methods=["POST", "GET"])
 @login_required
 def index():    
@@ -68,7 +69,9 @@ def index():
             except Exception as e:
                 db.session.rollback()
                 print(f"Error:{e}")
-                return f"Error:{e}"
+                flash("Issue occurred when trying to buy stock.")
+                return redirect(request.referrer or '/')
+                # return f"Error:{e}"
         else:      
             flash(error)
             return redirect('/')
@@ -107,7 +110,8 @@ def login():
             flash('Invalid username or password.')
             return redirect('/login')
         login_user(user, remember=form.remember_me.data)
-        flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
+        # flash('Login for user {}, remember_me = {}'.format(form.username.data, form.remember_me.data))
+        flash("Logged in successfully.")
         return redirect('/')
     return render_template('login.html', form=form)
 
@@ -135,7 +139,8 @@ def register():
             except Exception as e:
                 db.session.rollback()
                 print(f"Error:{e}")
-                return f"Error:{e}"
+                flash("Issue with registering for account.")
+                return redirect(request.referrer or '/')
         elif username:
             flash('Username Taken')
         elif email:
@@ -146,11 +151,14 @@ def register():
 @app.route('/delete-account/<int:id>', methods=["POST", "GET"])
 @login_required
 def delete_account(id):
+    if id != current_user.id:
+        flash("Unauthorized.")
+        return redirect('/')
     form = DeleteAccount()
     # user = db.session.scalar(db.select(User).where(User.username == current_user.username)) is new version, move to in future
-    user_delete = User.query.get_or_404(id)
+    user_delete = db.get_or_404(User, id)
     if form.validate_on_submit():
-        if user_delete.verify_password(form.password.data) and form.confirm.data == True:
+        if user_delete.verify_password(form.password.data) and form.confirm.data is True:
             try:
                 db.session.delete(user_delete)
                 db.session.commit()
@@ -160,7 +168,8 @@ def delete_account(id):
             except Exception as e:
                 db.session.rollback()
                 print(f"Error: {e}")
-                return f"Error {e}"
+                flash("Issue with deleting account.")
+                return redirect(request.referrer or '/')
         else: 
             flash('Incorrect Password')
     return render_template('delete_account.html', form=form)
@@ -171,7 +180,10 @@ def delete_account(id):
 @app.route("/info/<int:id>", methods=["GET"])
 @login_required
 def view(id):
-    holding_view = Holding.query.get_or_404(id)
+    holding_view = db.get_or_404(Holding, id)
+    if holding_view.user_id != current_user.id:
+        flash("Unauthorized.")
+        return redirect('/')
     update_if_stale(holding_view.stock)
     fetch_and_store_history(holding_view.stock.ticker, db)
     db.session.commit()
@@ -200,25 +212,25 @@ def stock_history_api(ticker):
 @app.route("/delete-stock/<int:id>", methods=["POST", "GET"])
 @login_required
 def delete_stock(id):
-    holding_delete = Holding.query.get_or_404(id)
-    if current_user.id == holding_delete.user_id:
-        try:
-            db.session.delete(holding_delete)
-            db.session.commit()
-            return redirect('/')
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error:{e}")
-            return f"Error:{e}"
-    else:
-        flash('Unable to delete stock.')
+    holding_delete = db.get_or_404(Holding, id)
+    if holding_delete.user_id != current_user.id:
+        flash("Unauthorized.")
+        return redirect('/')
+    try:
+        db.session.delete(holding_delete)
+        db.session.commit()
+        return redirect('/')
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error:{e}")
+        flash("Issue with deleting stock.")
         return redirect('/')
     
 #Add Transaction to Stock    
 @app.route("/add-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def add(id):
-    holding_update = Holding.query.get_or_404(id)
+    holding_update = db.get_or_404(Holding, id)
     transaction = Transaction(holding=holding_update)
     if current_user.id == holding_update.user_id:
         if request.method == "POST":
@@ -239,7 +251,8 @@ def add(id):
                 except Exception as e:
                     db.session.rollback()
                     print(f"Error:{e}")
-                    return f"Error:{e}"
+                    flash("Issue with adding transaction.")
+                    return redirect(request.referrer or '/')
         else:
             return render_template('transaction.html', holding=holding_update, is_transaction_edit=False)
     else:
@@ -250,7 +263,7 @@ def add(id):
 @app.route("/delete-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def delete_transaction(id):
-    transaction_delete = Transaction.query.get_or_404(id)
+    transaction_delete = db.get_or_404(Transaction, id)
     holding_id = transaction_delete.holding_id
     if current_user.id == transaction_delete.holding.user_id:
         try:
@@ -261,7 +274,8 @@ def delete_transaction(id):
         except Exception as e:
             db.session.rollback()
             print(f"Error:{e}")
-            return f"Error:{e}"
+            flash("Issue with deleting transaction.")
+            return redirect(request.referrer or '/')
     else:
         flash('Unable to delete transaction.')
         return redirect('/')
@@ -271,7 +285,7 @@ def delete_transaction(id):
 @app.route("/edit-transaction/<int:id>", methods=["POST", "GET"])
 @login_required
 def edit(id):
-    transaction_edit = Transaction.query.get_or_404(id)
+    transaction_edit = db.get_or_404(Transaction, id)
     if current_user.id == transaction_edit.holding.user_id:
         if request.method == "POST":
             transaction_edit.type = request.form['transaction_type'].upper()
@@ -286,7 +300,8 @@ def edit(id):
                 return redirect("/")
             except Exception as e:
                 print(f"Error:{e}")
-                return f"Error:{e}"
+                flash("Issue with editing transaction.")
+                return redirect(request.referrer or '/')
         else:
             return render_template('transaction.html', transaction=transaction_edit, is_transaction_edit=True)
     else:

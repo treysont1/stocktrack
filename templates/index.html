@@ -44,7 +44,10 @@
             <td>{{"{:,.2f}%".format(holding.potential_gain_percent) if holding.potential_gain_percent is not none else "N/A"}}</td>
 
             <td>
-                <a href="/delete-stock/{{holding.id}}">Delete</a>
+                <form action="/delete-stock/{{holding.id}}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" onclick="return confirm('Delete {{holding.stock.ticker}} and all its transactions?')">Delete</button>
+                </form>
                 <br/>
                 <a href="/add-transaction/{{holding.id}}">Add Transaction</a>
                 <br/>
@@ -57,6 +60,7 @@
     <table>
         <tr><th></th><h3>Add New Stock</h3></th><tr>
         <form action="/" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <tr>
                 <td> <label for="stock">Ticker:</label> <br> <input type="text" name="stock" id="stock" required/> </td>
                 <td> <label for="shares">Shares:</label> <br> <input type="number" min = 0.01 step="any" name="shares" id="shares" placeholder="0.00" required/> </td>

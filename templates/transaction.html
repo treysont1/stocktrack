@@ -11,6 +11,7 @@
             {% else %}
             <form action="/add-transaction/{{holding.id}}" method="POST">
             {% endif %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <table>
                 <tr>
                     <th>Type</th>
