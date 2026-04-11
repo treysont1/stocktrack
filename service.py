@@ -27,6 +27,7 @@ def calculate_fifo(holding):
             holding.average_price = holding.total_invested / holding.shares_owned
         else:
             holding.average_price = 0
+            holding.total_invested = 0
 
 def buy_stock(user, portfolio, db, order, current_price):
     existing_holding = next((h for h in portfolio if h.stock.ticker == order["ticker"]), None)
@@ -101,6 +102,10 @@ def store_portfolio_history_if_needed(user, holdings, db):
 
     current = start_date
 
+    tickers = [holding.stock.ticker for holding in holdings]
+    price_rows = StockHistory.query.filter(Stock.ticker.in_(tickers), StockHistory.date >= start_date).all()
+    price_map = {(row.ticker, row.date): row.close_price for row in price_rows}
+
     holding_transactions = {
         holding.id: sorted(holding.transactions, key=lambda t: t.time.date())
         for holding in holdings
@@ -118,9 +123,9 @@ def store_portfolio_history_if_needed(user, holdings, db):
                 else:
                     shares_owned[holding.id] -= transaction.shares
                 transaction_index[holding.id] += 1
-            price_row = StockHistory.query.filter_by(ticker=holding.stock.ticker, date=current).first()
-            if price_row:
-                total_value += shares_owned[holding.id] * price_row.close_price
+            close_price = price_map.get((holding.stock.ticker, current))
+            if close_price:
+                total_value += shares_owned[holding.id] * close_price
         
         if total_value > 0:
             entry = PortfolioHistory(user_id=user.id, date=current, total_value=total_value)
