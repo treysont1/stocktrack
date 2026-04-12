@@ -90,7 +90,7 @@ class StockHistory(db.Model):
     high_price = db.Column(db.Float)
     low_price = db.Column(db.Float)
     close_price = db.Column(db.Float)
-    volume = db.Column(db.Integer)
+    volume = db.Column(db.BigInteger)
 
     def __repr__(self):
         return f"StockHistory {self.ticker} {self.date}"
