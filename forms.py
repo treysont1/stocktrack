@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, EmailField
-from wtforms.validators import DataRequired, Email, ValidationError
+from wtforms.validators import DataRequired, Email, ValidationError, Length
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -9,21 +9,12 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    username = StringField('Username', validators=[DataRequired(), Length(min=3)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     email = StringField('Email Address', validators=[DataRequired(), Email()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), Length(min=8)])
     submit = SubmitField('Register')
 
-    # def validate_username(self, username):
-    #     username = db.session.scalar(db.select(User).where(User.username == username.data))
-    #     if username:
-    #         raise ValidationError('Username Taken')
-    
-    # def validate_email(self, email):
-    #     email = db.session.scalar(db.select(User).where(User.email == email.data))
-    #     if email:
-    #         raise ValidationError('Email Already In Use')
 class DeleteAccount(FlaskForm):
     password = PasswordField('Enter password')
-    confirm  = SubmitField('Confirm Account Deletion')
+    confirm  = SubmitField('Confirm Account Deletion', validators=[DataRequired()])
