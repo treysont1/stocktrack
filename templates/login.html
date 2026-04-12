@@ -2,7 +2,7 @@
 
 
 {% block head %} 
-<title>StockTrack</title>
+<title>Login - StockTrack</title>
 {% endblock %}
 {% block body %}
     <div class="content">
@@ -26,8 +26,8 @@
         <p> {{ form.remember_me() }} {{ form.remember_me.label }} </p>
         <p> 
             {{ form.submit() }} <br>
-            <input type="button" onclick="window.location.href='/register'" value="Create Account"> <br>
-            <input type="button" onclick="window.location.href='/'" value="Back">
+            <input type="button" onclick="window.location.href='{{ url_for("register") }}'" value="Create Account"> <br>
+            <input type="button" onclick="window.location.href='{{ url_for("index") }}'" value="Back">
         </p>
         </form>
     </div>
