@@ -4,17 +4,97 @@ body {
   padding: 0;
   background-color: #3c6aea;
   color: goldenrod;
+  min-width: 850px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: rgb(23.625, 75.375, 219.375);
+}
+.navbar .nav-brand {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+.navbar .nav-links {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.navbar .nav-links a, .navbar .nav-links span {
+  color: goldenrod;
+  text-decoration: none;
+}
+.navbar .nav-links a:hover {
+  text-decoration: underline;
+}
+
+.flash-container {
+  max-width: 800px;
+  margin: 16px auto 0;
+  padding: 0 20px;
+}
+.flash-container .flash {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+}
+.flash-container .flash .flash-dismiss {
+  background: none;
+  border: none;
+  color: #856404;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  line-height: 1;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.btn-danger {
+  color: #c0392b;
+}
+
+.chart-controls {
+  margin-bottom: 16px;
 }
 
 .content {
-  max-width: 800px;
+  max-width: 1100px;
   margin: 50px auto;
-  padding: 20px;
+  padding: 20px 20px 100px;
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 .content table {
-  width: 100%;
+  display: table;
+  margin: 0 auto;
+  border-spacing: 0 8px;
+}
+.content table th, .content table td {
+  padding: 6px 16px;
+}
+.content a {
+  color: #3c6aea;
 }/*# sourceMappingURL=styles.css.map */
