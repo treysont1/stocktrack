@@ -7,9 +7,9 @@ def validate_and_fetch(ticker):
     if not _TICKER_RE.match(ticker):
         return (False, None, "Invalid Ticker")
     try:
-        info = yf.Ticker(ticker).info
-        price = info.get("regularMarketPrice")
-        if price is None or "regularMarketPrice" not in info:
+        fast = yf.Ticker(ticker).fast_info
+        price = fast["lastPrice"]
+        if price is None:
             return (False, None, "Invalid Ticker")
         return (True, price, None)
     except yf.exceptions.YFRateLimitError:
