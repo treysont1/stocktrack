@@ -36,6 +36,7 @@ _production = os.getenv("FLASK_ENV") == "production"
 app.config["SESSION_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["REMEMBER_COOKIE_SECURE"] = _production
+app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 app.secret_key = _secret_key
 db.init_app(app)
 migrate = Migrate(app, db)
