@@ -12,6 +12,8 @@ def validate_and_fetch(ticker):
         if price is None or "regularMarketPrice" not in info:
             return (False, None, "Invalid Ticker")
         return (True, price, None)
+    except yf.exceptions.YFRateLimitError:
+        return (False, None, "YFinance is receiving too many requests, try again shortly.")
     except Exception:
         return (False, None, "API error.")
 
