@@ -9,9 +9,11 @@
 
 #### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
-### Currently working on
+### Currently working on deployment
 
 #### Main dashboard view to display basic profit/loss, integrating Plaid API in future (maybe).
+
+##### Uses Render, Supabase for PostgreSQL, and Upstash for redis (Render free plan, may take 30-60 seconds to load up after 15 minutes of inactivity)
 
 ##### How to run locally: 
 (Note: If you are on Windows device, use python instead of python3 for all commands below)
