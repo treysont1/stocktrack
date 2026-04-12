@@ -187,7 +187,7 @@ def register():
     return render_template('registration.html', form=form)
 
 #Delete Account
-@app.route('/delete-account/<int:id>', methods=["POST"])
+@app.route('/delete-account/<int:id>', methods=["GET", "POST"])
 @login_required
 def delete_account(id):
     if id != current_user.id:
