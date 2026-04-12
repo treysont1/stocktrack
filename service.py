@@ -61,12 +61,14 @@ def fetch_and_store_history(ticker, db):
     if latest and latest.date == date.today():
         return
     
-    if latest:
-        history = yf.Ticker(ticker).history(start=latest.date.isoformat())
-    else:
-        history = yf.Ticker(ticker).history(period="max")
-    ## change interval to lower if month? also day in future if necessary
-    
+    try:
+        if latest:
+            history = yf.Ticker(ticker).history(start=latest.date.isoformat())
+        else:
+            history = yf.Ticker(ticker).history(period="max")
+    except Exception:
+        return
+
     if history.empty:
         return
 
