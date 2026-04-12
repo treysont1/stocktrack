@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import yfinance as yf
 from stock_validation import get_current_price
 from models import StockHistory, PortfolioHistory, Transaction, Holding, Stock
@@ -47,12 +47,12 @@ threshold = timedelta(days=1)
 def is_stale(stock):
     if not stock.last_updated:
         return True
-    return stock.last_updated.date() + threshold < datetime.now().date()
+    return stock.last_updated.date() + threshold < datetime.now(timezone.utc).date()
 
 def update_if_stale(stock):
     if is_stale(stock):
         stock.current_price = get_current_price(stock.ticker)
-        stock.last_updated = datetime.now()
+        stock.last_updated = datetime.now(timezone.utc)
 
 # If is stale, call yfinance + update time last updated
 
@@ -95,7 +95,7 @@ def store_portfolio_history_if_needed(user, holdings, db):
     if latest and latest.date == date.today():
         return
     elif latest:
-        start_date = latest.date
+        start_date = latest.date + timedelta(days=1)
     else:
         first_transaction = Transaction.query.join(Holding).filter(Holding.user_id == user.id).order_by(Transaction.time.asc()).first()
         start_date = first_transaction.time.date() if first_transaction else date.today()
@@ -103,7 +103,7 @@ def store_portfolio_history_if_needed(user, holdings, db):
     current = start_date
 
     tickers = [holding.stock.ticker for holding in holdings]
-    price_rows = StockHistory.query.filter(Stock.ticker.in_(tickers), StockHistory.date >= start_date).all()
+    price_rows = StockHistory.query.filter(StockHistory.ticker.in_(tickers), StockHistory.date >= start_date).all()
     price_map = {(row.ticker, row.date): row.close_price for row in price_rows}
 
     holding_transactions = {
@@ -112,6 +112,18 @@ def store_portfolio_history_if_needed(user, holdings, db):
     }
     shares_owned = {holding.id: 0 for holding in holdings}
     transaction_index = {holding.id: 0 for holding in holdings}
+
+    # pre-populate shares owned from transactions before start_date
+    for holding in holdings:
+        for t in holding_transactions[holding.id]:
+            if t.time.date() < start_date:
+                if t.type == "BUY":
+                    shares_owned[holding.id] += t.shares
+                else:
+                    shares_owned[holding.id] -= t.shares
+                transaction_index[holding.id] += 1
+            else:
+                break
 
     while current <= date.today():
         total_value = 0
