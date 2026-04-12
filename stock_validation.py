@@ -20,7 +20,6 @@ def validate_and_fetch(ticker):
 
 def get_current_price(ticker):
     try:
-        info = yf.Ticker(ticker).info
-        return info.get("regularMarketPrice")
+        return yf.Ticker(ticker).fast_info["lastPrice"]
     except Exception:
         return None
