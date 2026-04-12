@@ -2,7 +2,7 @@
 
 
 {% block head %} 
-<title>StockTrack</title>
+<title>Registration - StockTrack</title>
 {% endblock %}
 {% block body %}
     <div class="content">
@@ -37,9 +37,10 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p> 
+        <p>
             {{ form.submit() }} <br>
-            <input type="button" onclick="window.location.href='/'" value="Back">
+            <input type="button" onclick="window.location.href='{{ url_for("login") }}'" value="Already have an account? Sign In"> <br>
+            <input type="button" onclick="window.location.href='{{ url_for("index") }}'" value="Back">
         </p>
         </form>
     </div>
