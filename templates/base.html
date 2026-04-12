@@ -4,17 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for("static", filename="styles.css")}}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" 
+    integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" 
+    crossorigin="anonymous"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">StockTrack</a>
+        <div class="nav-links">
+            {% if current_user.is_authenticated %}
+                <span>{{ current_user.username }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+                <a href="{{ url_for('delete_account', id=current_user.id) }}">Delete Account</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <p>
+    <div class="flash-container">
         {% for message in messages %}
-        {{ message }}
+        <div class="flash">
+            {{ message }}
+            <button class="flash-dismiss" onclick="this.parentElement.remove()">&times;</button>
+        </div>
         {% endfor %}
-    </p>
+    </div>
     {% endif %}
     {% endwith %}
     {% block body %}{% endblock %}
