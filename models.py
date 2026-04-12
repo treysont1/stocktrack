@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from functools import cached_property
-from datetime import datetime
+from datetime import datetime, timezone
 import sqlalchemy.orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -43,6 +42,8 @@ class Holding(db.Model):
     average_price = db.Column(db.Float, default=0)
     total_invested = db.Column(db.Float, default=0)
 
+    __table_args__ = (db.UniqueConstraint('user_id', 'stock_id', name='uq_holding_user_stock'),)
+
     transactions: so.Mapped[list['Transaction']] = db.relationship("Transaction", back_populates='holding', cascade='all, delete-orphan', order_by='Transaction.time')
 
     @property
@@ -76,14 +77,15 @@ class Transaction(db.Model):
     type = db.Column(db.Enum("BUY", "SELL", name="transaction_type"), nullable=False)
     shares = db.Column(db.Float, nullable=False)
     price_per_share = db.Column(db.Float, nullable=False)
-    time = db.Column(db.DateTime, default=datetime.now)
+    time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     holding_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("holding.id", ondelete='CASCADE'), nullable=False, index=True)
     holding: so.Mapped['Holding'] = db.relationship("Holding", back_populates='transactions')
    
 class StockHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(10), nullable=False)
+    ticker = db.Column(db.String(10), nullable=False, index=True)
     date = db.Column(db.Date, nullable=False)
+    __table_args__ = (db.UniqueConstraint('ticker', 'date', name='uq_stockhistory_ticker_date'),)
     open_price = db.Column(db.Float)
     high_price = db.Column(db.Float)
     low_price = db.Column(db.Float)
@@ -96,5 +98,5 @@ class StockHistory(db.Model):
 class PortfolioHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), nullable=False, index=True)
-    date = db.Column(db.Date, nullable=False)
+    date = db.Column(db.Date, nullable=False, index=True)
     total_value = db.Column(db.Float, nullable=False)
