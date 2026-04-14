@@ -5,7 +5,7 @@
 ### Stock tracker meant to allow users to track investment portfolio across brokerage accounts in one unified platform
 
 ### Current Status
-#### Plotting points where stock was bought, fixing small errors, deploying
+#### Plotting points where stock was bought, offline currently for performance enhancing optimizations
 
 #### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
@@ -13,7 +13,7 @@
 
 #### Main dashboard view to display basic profit/loss, integrating Plaid API in future (maybe).
 
-##### Uses Render, Supabase for PostgreSQL, and Upstash for redis (Render free plan, may take 30-60 seconds to load up after 15 minutes of inactivity)
+##### Uses Render, Supabase for PostgreSQL, and Upstash for redis (Render free plan, may take 30-60 seconds to load up after 15 minutes of inactivity) 
 
 ##### How to run locally: 
 (Note: If you are on Windows device, use python instead of python3 for all commands below)
