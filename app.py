@@ -11,6 +11,7 @@ from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Transaction, StockHistory, PortfolioHistory
 from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
 from stock_validation import validate_and_fetch
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 app = Flask(__name__)
@@ -38,6 +39,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["REMEMBER_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 app.secret_key = _secret_key
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 db.init_app(app)
 migrate = Migrate(app, db)
 limiter = Limiter(
