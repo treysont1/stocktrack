@@ -25,6 +25,11 @@ load_dotenv(dotenv_path=".env")
 
 _db_uri = os.getenv('DATABASE_URL') or os.getenv('SQLALCHEMY_DATABASE_URI')
 _secret_key = os.getenv("SECRET_KEY")
+_redis_url = os.getenv("REDIS_URL", "memory://")
+if _redis_url.startswith("rediss://"):
+    _redis_url += "?ssl_cert_reqs=none"
+
+
 if _db_uri and _db_uri.startswith("postgres://"):
     _db_uri = _db_uri.replace("postgres://", "postgresql://", 1)
 if not _db_uri:
@@ -46,7 +51,7 @@ migrate = Migrate(app, db)
 limiter = Limiter(
     app=app, 
     key_func=lambda: str(current_user.id) if current_user.is_authenticated else get_remote_address(),
-    storage_uri=os.getenv("REDIS_URL", "memory://")
+    storage_uri=_redis_url
     )
 logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
 
