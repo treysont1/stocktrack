@@ -70,7 +70,7 @@ def health():
     return "", 200
 
 #Homepage
-@limiter.limit("5 per minute", methods=["POST"])
+@limiter.limit("5/minute", methods=["POST"])
 @app.route("/", methods=["POST", "GET"])
 @login_required
 def index():    
@@ -140,7 +140,7 @@ def portfolio_history_api():
     return jsonify({"labels": labels, "prices": prices})
 
 #Login Page
-@limiter.limit("5 per minute")
+@limiter.limit("5/minute")
 @app.route('/login', methods=["POST", "GET"])
 def login():
     if current_user.is_authenticated:
@@ -163,7 +163,7 @@ def logout():
     return redirect(url_for("index"))
 
 #Registration Page
-@limiter.limit("5 per minute")
+@limiter.limit("5/minute")
 @app.route('/register', methods=["POST", "GET"])
 def register():
     form = RegistrationForm()
@@ -216,7 +216,7 @@ def delete_account(id):
 
 
 #View Holding Info
-@limiter.limit("5 per minute")
+@limiter.limit("5/minute")
 @app.route("/info/<int:id>", methods=["GET"])
 @login_required
 def view_holding(id):
