@@ -12,6 +12,7 @@ from models import db, User, Holding, Transaction, StockHistory, PortfolioHistor
 from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
 from stock_validation import validate_and_fetch
 from werkzeug.middleware.proxy_fix import ProxyFix
+import logging
 
 
 app = Flask(__name__)
@@ -47,6 +48,8 @@ limiter = Limiter(
     key_func=lambda: str(current_user.id) if current_user.is_authenticated else get_remote_address(),
     storage_uri=os.getenv("REDIS_URL", "memory://")
     )
+logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
+
     
 @login.user_loader
 def load_user(id):
