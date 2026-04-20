@@ -77,6 +77,11 @@ def set_security_headers(response):
 def health():
     return "", 200
 
+@app.route("/test")
+@limiter.limit("3 per minute")
+def test():
+    return "ok"
+
 #Homepage
 @limiter.limit("5/minute", methods=["POST"])
 @app.route("/", methods=["POST", "GET"])
