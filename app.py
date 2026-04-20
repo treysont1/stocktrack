@@ -54,7 +54,7 @@ limiter = Limiter(
     storage_options={"ssl_cert_reqs": None}
     )
 logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
-
+print("Limiter storage:", app.limiter.storage)
     
 @login.user_loader
 def load_user(id):
