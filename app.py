@@ -51,7 +51,7 @@ limiter = Limiter(
     app=app, 
     key_func=lambda: str(current_user.id) if current_user.is_authenticated else get_remote_address(),
     storage_uri=_redis_url,
-    storage_options={"ssl_cert_reqs": None}
+    storage_options={"ssl_cert_reqs": "none"}
     )
 logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
 print("Limiter storage:", limiter.storage)
