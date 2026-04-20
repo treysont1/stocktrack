@@ -42,6 +42,7 @@ app.config["SESSION_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["REMEMBER_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
+app.config["WTF_CSRF_ENABLED"] = False
 app.secret_key = _secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 db.init_app(app)
