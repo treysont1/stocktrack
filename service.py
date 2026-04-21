@@ -4,6 +4,8 @@ from stock_validation import get_current_price
 from models import StockHistory, PortfolioHistory, Transaction, Holding, Stock
 _history_checked_today: set = set()
 _history_checked_date: date = date.min
+_portfolio_history_checked_today: dict = {}
+_portfolio_history_checked_date: date = date.min
 
 #Important Functions
 
@@ -61,7 +63,7 @@ def update_if_stale(stock):
 def fetch_and_store_history(ticker, db):
     global _history_checked_today, _history_checked_date
     today = date.today()
-    
+
     if _history_checked_date != today:
         _history_checked_today = set()
         _history_checked_date = today
@@ -103,11 +105,23 @@ def fetch_and_store_history(ticker, db):
             volume=int(row.Volume)
         )
         db.session.add(entry)
+    _history_checked_today.add(ticker)
 
 
 def store_portfolio_history_if_needed(user, holdings, db):
+    global _portfolio_history_checked_today, _portfolio_history_checked_date
+    today = date.today()
+
+    if _portfolio_history_checked_date:
+        _portfolio_history_checked_today = {}
+        _portfolio_history_checked_date = today
+
+    if user.id in _portfolio_history_checked_today:
+        return
+
     latest = PortfolioHistory.query.filter_by(user_id=user.id).order_by(PortfolioHistory.date.desc()).first()
-    if latest and latest.date == date.today():
+    if latest and latest.date == today:
+        _portfolio_history_checked_today[user.id] = True
         return
     elif latest:
         start_date = latest.date + timedelta(days=1)
@@ -158,3 +172,4 @@ def store_portfolio_history_if_needed(user, holdings, db):
             entry = PortfolioHistory(user_id=user.id, date=current, total_value=total_value)
             db.session.add(entry)
         current += timedelta(days=1)
+    _portfolio_history_checked_today[user.id] = True
