@@ -2,6 +2,8 @@ from datetime import datetime, timedelta, date, timezone
 import yfinance as yf
 from stock_validation import get_current_price
 from models import StockHistory, PortfolioHistory, Transaction, Holding, Stock
+_history_checked_today: set = set()
+_history_checked_date: date = date.min
 
 #Important Functions
 
@@ -57,8 +59,19 @@ def update_if_stale(stock):
 # If is stale, call yfinance + update time last updated
 
 def fetch_and_store_history(ticker, db):
+    global _history_checked_today, _history_checked_date
+    today = date.today()
+    
+    if _history_checked_date != today:
+        _history_checked_today = set()
+        _history_checked_date = today
+    
+    if ticker in _history_checked_today:
+        return
+
     latest = StockHistory.query.filter_by(ticker=ticker).order_by(StockHistory.date.desc()).first()
-    if latest and latest.date == date.today():
+    if latest and latest.date == today:
+        _history_checked_today.add(ticker)
         return
     
     try:
