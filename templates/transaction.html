@@ -56,6 +56,6 @@
                 </tr>
             </table>
             </form>
-            <a href="{{ url_for('view_holding', id=holding.id) }}">Back</a>
+            <a href="{{ url_for('view_holding', id=transaction.holding_id if is_transaction_edit else holding.id) }}">Back</a>
         </div>
 {% endblock %}
