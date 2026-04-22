@@ -77,7 +77,7 @@ def health():
     return "", 200
 
 @app.route("/test")
-@limiter.limit("3 per minute")
+@limiter.limit("3 per minute", methods=["POST, GET"])
 def test():
     return "ok"
 
