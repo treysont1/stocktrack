@@ -43,7 +43,6 @@ app.config["SESSION_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["REMEMBER_COOKIE_SECURE"] = _production
 app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
-app.config["WTF_CSRF_ENABLED"] = False
 app.secret_key = _secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 db.init_app(app)
@@ -54,8 +53,7 @@ limiter = Limiter(
     storage_uri=_redis_url,
     storage_options={"ssl_cert_reqs": "none"}
     )
-logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
-print("Limiter storage:", limiter.storage)
+# logging.getLogger("flask_limiter").setLevel(logging.DEBUG)
     
 @login.user_loader
 def load_user(id):
