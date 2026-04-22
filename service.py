@@ -112,7 +112,7 @@ def store_portfolio_history_if_needed(user, holdings, db):
     global _portfolio_history_checked_today, _portfolio_history_checked_date
     today = date.today()
 
-    if _portfolio_history_checked_date:
+    if _portfolio_history_checked_date != today:
         _portfolio_history_checked_today = {}
         _portfolio_history_checked_date = today
 
