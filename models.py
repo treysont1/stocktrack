@@ -100,3 +100,4 @@ class PortfolioHistory(db.Model):
     user_id: so.Mapped[int] = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), nullable=False, index=True)
     date = db.Column(db.Date, nullable=False, index=True)
     total_value = db.Column(db.Float, nullable=False)
+    __table_args__ = (db.Index('idx_portfolio_user_date', 'user_id', 'date'),)

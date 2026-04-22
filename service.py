@@ -89,7 +89,7 @@ def fetch_and_store_history(ticker, db):
 
     existing_dates = set()
     if latest:
-        existing_dates = {row.date for row in StockHistory.query.filter_by(ticker=ticker)}
+        existing_dates = {row.date for row in StockHistory.query.filter_by(ticker=ticker).with_entities(StockHistory.date)}
     
     for row in history.itertuples():
         row_date = row.Index.date()

@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect
 from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Transaction, StockHistory, PortfolioHistory
 from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
+from sqlalchemy.orm import joinedload
 from stock_validation import validate_and_fetch
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
@@ -88,7 +89,7 @@ def test():
 @login_required
 def index():    
     #Add Stock
-    portfolio = Holding.query.filter(Holding.user == current_user).order_by(Holding.total_invested.desc()).all()
+    portfolio = Holding.query.filter(Holding.user == current_user).options(joinedload(Holding.stock)).order_by(Holding.total_invested.desc()).all()
     active_holdings = []
     for holding in portfolio:
         if holding.shares_owned == 0:
