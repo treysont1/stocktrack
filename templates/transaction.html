@@ -5,57 +5,61 @@
 {% endblock %}
 {% block body %}
     <div class="content">
-            <h1>{{ 'Edit' if is_transaction_edit else 'Add' }} Transaction</h1>
-            {% if is_transaction_edit %}
-            <form action="{{ url_for('edit_transaction', id=transaction.id) }}" method="POST">
-            {% else %}
-            <form action="{{ url_for('add_transaction', id=holding.id) }}" method="POST">
-            {% endif %}
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <table>
-                <tr>
-                    <th>Type</th>
-                    <th>Share Amount</th>
-                    <th>Price per Share</th>
-                    <th>Date</th>
-                    <th>Submit</th>
-                </tr>
-                <tr>
-                    <!--Type-->
-                    <td>
-                    <select name="transaction_type" id="transaction_type" required>
-                        <option value="BUY" {{ 'selected' if is_transaction_edit and transaction.type == 'BUY' }}>BUY</option>
-                        <option value="SELL" {{ 'selected' if is_transaction_edit and transaction.type == 'SELL' }}>SELL</option>
-                    </select>
-                    </td>
+        <h1>{{ 'Edit' if is_transaction_edit else 'Add' }} Transaction</h1>
+        {% if is_transaction_edit %}
+        <form action="{{ url_for('edit_transaction', id=transaction.id) }}" method="POST">
+        {% else %}
+        <form action="{{ url_for('add_transaction', id=holding.id) }}" method="POST">
+        {% endif %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Share Amount</th>
+                <th>Price per Share</th>
+                <th>Date</th>
+                <th>Submit</th>
+            </tr>
+            <tr>
+                <!--Type-->
+                <td>
+                <select name="transaction_type" id="transaction_type" required>
+                    <option value="BUY" {{ 'selected' if is_transaction_edit and transaction.type == 'BUY' }}>BUY</option>
+                    <option value="SELL" {{ 'selected' if is_transaction_edit and transaction.type == 'SELL' }}>SELL</option>
+                </select>
+                </td>
 
-                    <!--Share Amount-->
-                    <td>
-                    <input type="number" step="any" name="shares" id="shares" value="{{ transaction.shares if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.shares if is_transaction_edit else '0.00' }}"/>
-                    </td>
+                <!--Share Amount-->
+                <td>
+                <input type="number" step="any" name="shares" id="shares" value="{{ transaction.shares if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.shares if is_transaction_edit else '0.00' }}"/>
+                </td>
 
-                    <!--Price Per Share-->
-                    <td>
-                    <input type="number" step="any" name="price_per_share" id="price_per_share" value="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}"/>
-                    </td>
+                <!--Price Per Share-->
+                <td>
+                <input type="number" step="any" name="price_per_share" id="price_per_share" value="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}" placeholder="{{ transaction.price_per_share if is_transaction_edit else '0.00' }}"/>
+                </td>
 
-                    <!--Date Bought-->
-                    <td>
-                    <input type="datetime-local" step="any" name="date_bought" id="date_bought" value="{{ transaction.time.strftime('%Y-%m-%dT%H:%M') if is_transaction_edit else '' }}" />
-                    </td>
+                <!--Date Bought-->
+                <td>
+                <input type="datetime-local" step="any" name="date_bought" id="date_bought" value="{{ transaction.time.strftime('%Y-%m-%dT%H:%M') if is_transaction_edit else '' }}" />
+                </td>
 
-                    <!-- fill in blanks for date bought/time -->
-                
-                    <td>
-                    {% if is_transaction_edit %}
-                    <input type="submit" value="Edit Transaction" id="button_edit" />
-                    {% else %}
-                    <input type="submit" value="Add Transaction" id="button_edit" />
-                    {% endif %}
-                    </td>
-                </tr>
-            </table>
-            </form>
-            <a href="{{ url_for('view_holding', id=transaction.holding_id if is_transaction_edit else holding.id) }}">Back</a>
-        </div>
+                <!-- fill in blanks for date bought/time -->
+            
+                <td>
+                {% if is_transaction_edit %}
+                <input type="submit" value="Edit Transaction" id="button_edit" />
+                {% else %}
+                <input type="submit" value="Add Transaction" id="button_edit" />
+                {% endif %}
+                </td>
+            </tr>
+        </table>
+        </form>
+        <a href="{{ url_for('view_holding', id=transaction.holding_id if is_transaction_edit else holding.id) }}">Back</a>
+    </div>
+    <script>
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementByID('date_bought').setAttribute('max', today);
+    </script>
 {% endblock %}
