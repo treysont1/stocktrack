@@ -60,6 +60,6 @@
     </div>
     <script>
         const today = new Date().toISOString().split('T')[0];
-        document.getElementByID('date_bought').setAttribute('max', today);
+        document.getElementById('date_bought').setAttribute('max', today);
     </script>
 {% endblock %}
