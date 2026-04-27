@@ -109,6 +109,10 @@ def fetch_and_store_history(ticker, db):
         db.session.add(entry)
     _history_checked_today.add(ticker)
 
+def invalidate_portfolio_history(user, db, from_date):
+    global _portfolio_history_checked_today
+    _portfolio_history_checked_today.pop(user.id, None)
+    PortfolioHistory.query.filter_by(user_id=user.id).filter(PortfolioHistory.date >= from_date).delete()
 
 def store_portfolio_history_if_needed(user, holdings, db):
     global _portfolio_history_checked_today, _portfolio_history_checked_date

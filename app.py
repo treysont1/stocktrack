@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from forms import LoginForm, RegistrationForm, DeleteAccount
 from models import db, User, Holding, Transaction, StockHistory, PortfolioHistory
-from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed
+from service import calculate_fifo, buy_stock, update_if_stale, fetch_and_store_history, store_portfolio_history_if_needed, invalidate_portfolio_history
 from sqlalchemy.orm import joinedload
 from stock_validation import validate_and_fetch
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -119,6 +119,7 @@ def index():
         if valid:
             try:
                 buy_stock(current_user, active_holdings, db, order, current_price)
+                invalidate_portfolio_history(current_user, db, order["date"].date())
                 db.session.commit()
                 return redirect(url_for("index"))
             except Exception as e:
@@ -321,10 +322,12 @@ def add_transaction(id):
 @login_required
 def delete_transaction(id):
     transaction_delete = db.get_or_404(Transaction, id)
+    from_date = transaction_delete.date()
     holding_id = transaction_delete.holding_id
     if current_user.id == transaction_delete.holding.user_id:
         try:
             db.session.delete(transaction_delete)
+            invalidate_portfolio_history(current_user, db, from_date)
             calculate_fifo(transaction_delete.holding)
             db.session.commit()
             return redirect(url_for("view_holding", id=holding_id))
@@ -343,6 +346,7 @@ def delete_transaction(id):
 @login_required
 def edit_transaction(id):
     transaction_edit = db.get_or_404(Transaction, id)
+    old_date = transaction_edit.time.date()
     if current_user.id == transaction_edit.holding.user_id:
         if request.method == "POST":
             try:
@@ -356,6 +360,8 @@ def edit_transaction(id):
                 return redirect(url_for("index"))
             try:
                 calculate_fifo(transaction_edit.holding)
+                from_date = min(old_date, transaction_edit.time.date())
+                invalidate_portfolio_history(current_user, db, from_date)
                 db.session.commit()
                 return redirect(url_for("index"))
             except Exception as e:
