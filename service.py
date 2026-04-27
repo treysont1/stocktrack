@@ -49,14 +49,16 @@ def buy_stock(user, portfolio, db, order, current_price):
 # threshold will be datetime.timedelta(days=1)
 threshold = timedelta(days=1)
 def is_stale(stock):
-    if not stock.last_updated:
+    if not stock.last_updated or stock.current_price is None:
         return True
-    return stock.last_updated.date() + threshold < datetime.now(timezone.utc).date()
+    return stock.last_updated.date() + threshold <= datetime.now(timezone.utc).date()
 
 def update_if_stale(stock):
     if is_stale(stock):
-        stock.current_price = get_current_price(stock.ticker)
-        stock.last_updated = datetime.now(timezone.utc)
+        price = get_current_price(stock.ticker)
+        if price is not None:
+            stock.current_price = price
+            stock.last_updated = datetime.now(timezone.utc)
 
 # If is stale, call yfinance + update time last updated
 
