@@ -68,7 +68,8 @@
     </form>
 </div>
 <script>
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0] + 'T' + now.toTimeString().slice(0, 5);
     document.getElementById('date').setAttribute('max', today);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" 
