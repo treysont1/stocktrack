@@ -87,7 +87,10 @@ def test():
 @login_required
 def index():    
     #Add Stock
-    portfolio = Holding.query.filter(Holding.user == current_user).options(joinedload(Holding.stock)).order_by(Holding.total_invested.desc()).all()
+    portfolio = (Holding.query
+                .filter(Holding.user == current_user)
+                .options(joinedload(Holding.stock))
+                .order_by(Holding.total_invested.desc()).all())
     active_holdings = []
     for holding in portfolio:
         if holding.shares_owned == 0:
@@ -142,7 +145,9 @@ def portfolio_history_api():
     limits = {"1m": 21, "1y": 252, "5y": 1260, "all": None}
     limit = limits.get(period, 21)
 
-    query = PortfolioHistory.query.filter_by(user_id=current_user.id).order_by(PortfolioHistory.date.desc())
+    query = (PortfolioHistory.query
+            .filter_by(user_id=current_user.id)
+            .order_by(PortfolioHistory.date.desc()))
     if period != "all":
         query = query.limit(limit)
     rows = query.all()
@@ -150,7 +155,17 @@ def portfolio_history_api():
     
     labels = [row.date.strftime("%Y-%m-%d") for row in rows]
     prices = [row.total_value for row in rows]
-    return jsonify({"labels": labels, "prices": prices})
+
+    start_date = rows[0].date if rows else None
+    transactions = (
+        Transaction.query
+        .join(Holding)
+        .filter(Holding.user_id == current_user.id)
+        .filter(Transaction.time >= start_date)) if start_date else []
+    transaction_dates = [{"date": t.time.date().strftime("%Y-%m-%d"),
+                        "type": t.type, "ticker": t.holding.stock.ticker}
+                        for t in transactions]
+    return jsonify({"labels": labels, "prices": prices, "transaction_dates":transaction_dates})
 
 #Login Page
 @limiter.limit("5/minute")

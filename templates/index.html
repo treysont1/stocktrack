@@ -86,6 +86,15 @@
                 if (chart){
                     chart.destroy()
                 }
+                const dateToPrice = {};
+                data.labels.forEach((label, i) => dateToPrice[label] = data.prices[i]);
+
+                const buys = data.transaction_dates.filter(t => t.type === "BUY" && dateToPrice[t.date] !== undefined)
+                    .map(t => ({ x: t.date, y: dateToPrice[t.date], ticker: t.ticker }));
+
+                const sells = data.transaction_dates.filter(t => t.type === "SELL" && dateToPrice[t.date] !== undefined)
+                    .map(t => ({ x: t.date, y: dateToPrice[t.date], ticker: t.ticker }));
+
                 const ctx = document.getElementById("valueChart").getContext("2d")
                 chart = new Chart(ctx, {
                     type: 'line',
@@ -100,6 +109,20 @@
                             pointRadius: 0,
                             fill: true,
                             tension: 0.1
+                        },
+                        {
+                            label: 'BUY',
+                            type: 'scatter',
+                            data: buys,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#2ecc71'
+                        },
+                        {
+                        label: 'SELL',
+                        type: 'scatter',
+                        data: sells,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#e74c3c'
                         }]
                     },
                     options: {
@@ -107,6 +130,17 @@
                         scales: {
                             x: { ticks: { maxTicksLimit: 12} },
                             y: { ticks: { callback: value => '$' + value.toFixed(2) } }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => {
+                                        if (ctx.dataset.label === 'BUY' || ctx.dataset.label === 'SELL')
+                                            return `${ctx.dataset.label} ${ctx.raw.ticker} @ $${ctx.raw.y.toFixed(2)}`;
+                                        return `$${ctx.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
                         }
                     }
                 });
