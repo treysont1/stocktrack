@@ -72,7 +72,11 @@
     const ticker = {{ holding.stock.ticker | tojson }};
     let chart = null;
 
-    const allTransactions = {{ [{"date": t.time.strftime("%Y-%m-%d"), "type": t.type} for t in transactions] | tojson }};
+    const allTransactions = [
+        {% for t in transactions %}
+        {"date": "{{ t.time.strftime('%Y-%m-%d') }}", "type": "{{ t.type }}"}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
     function loadChart(period){
         fetch(`/history/${ticker}?period=${period}`)
