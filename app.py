@@ -337,7 +337,7 @@ def add_transaction(id):
 @login_required
 def delete_transaction(id):
     transaction_delete = db.get_or_404(Transaction, id)
-    from_date = transaction_delete.date()
+    from_date = transaction_delete.time.date()
     holding_id = transaction_delete.holding_id
     if current_user.id == transaction_delete.holding.user_id:
         try:
