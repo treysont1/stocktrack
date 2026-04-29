@@ -9,7 +9,7 @@
 
 #### Application is currently in CRUD stage where users enter date of transaction, shares, and price at time of purchase. 
 
-### Currently working on deployment
+### Deployed at: https://stocktrack-4jzm.onrender.com
 
 #### Main dashboard view to display basic profit/loss, integrating Plaid API in future (maybe).
 
